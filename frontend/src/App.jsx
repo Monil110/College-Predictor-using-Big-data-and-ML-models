@@ -29,7 +29,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="header">
-        <h1>IntelliJEE Predictor</h1>
+        <h1>PredictMe</h1>
         <p>Big Data & ML Powered Admission Intelligence</p>
       </div>
       

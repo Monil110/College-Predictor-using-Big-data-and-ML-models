@@ -1,6 +1,6 @@
-# IntelliJEE Platform — Big Data Admission Predictor 🚀
+# PredictMe — Big Data Admission Predictor 🚀
 
-IntelliJEE is a powerful, end-to-end Big Data and Machine Learning platform engineered to predict admission tier probabilities for complex nationwide entrance examinations — specifically **Engineering (JEE)** and **Medical (NEET)**.
+PredictMe is a powerful, end-to-end Big Data and Machine Learning platform engineered to predict admission tier probabilities for complex nationwide entrance examinations — specifically **Engineering (JEE)** and **Medical (NEET)**.
 
 The platform bridges massive raw data handling via **PySpark**, highly optimized tree-based predictive algorithms via **XGBoost & Optuna**, rapid and scalable serving bounds via **FastAPI** & **Redis**, and an interactive graphical layer through **React/Vite**.
 

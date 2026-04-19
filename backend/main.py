@@ -128,7 +128,7 @@ def encode(encoders, col, val):
 # -------------------------
 @app.get("/")
 def home():
-    return {"message": "IntelliJEE Unified Predictor API Running"}
+    return {"message": "PredictMe Unified Predictor API Running"}
 
 @app.get("/health")
 def health():
