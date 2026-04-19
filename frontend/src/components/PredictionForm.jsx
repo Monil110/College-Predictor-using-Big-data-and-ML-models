@@ -1,0 +1,125 @@
+import React, { useState } from 'react';
+
+const PredictionForm = ({ onPredict, isLoading }) => {
+  const [domain, setDomain] = useState('JEE');
+  
+  const [formData, setFormData] = useState({
+    user_rank: 2500,
+    exam_type: 'JEE Advanced',
+    category: 'GEN',
+    quota: 'AI',
+    pool: 'Gender-Neutral'
+  });
+
+  const [neetFormData, setNeetFormData] = useState({
+    user_rank: 5000,
+    category: 'OPEN SEAT'
+  });
+
+  const handleDomainChange = (e) => {
+    setDomain(e.target.value);
+  };
+
+  const handleJeeChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleNeetChange = (e) => {
+    setNeetFormData({ ...neetFormData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (domain === 'JEE') {
+      onPredict({ ...formData, user_rank: parseInt(formData.user_rank, 10), domain: 'JEE' });
+    } else {
+      // Maps the frontend visual `user_rank` logically to what `backend/neet/` expects: `candidate_rank`
+      onPredict({ ...neetFormData, candidate_rank: parseInt(neetFormData.user_rank, 10), domain: 'NEET' });
+    }
+  };
+
+  return (
+    <div className="glass-panel">
+      <form onSubmit={handleSubmit}>
+        
+        {/* Toggle Controls */}
+        <div className="form-group" style={{ textAlign: "center", marginBottom: "25px", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "15px" }}>
+            <label style={{ display: "inline-flex", alignItems: "center", marginRight: "30px", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
+              <input type="radio" value="JEE" checked={domain === 'JEE'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
+              Engineering (JEE)
+            </label>
+            <label style={{ display: "inline-flex", alignItems: "center", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
+              <input type="radio" value="NEET" checked={domain === 'NEET'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
+              Medical (NEET)
+            </label>
+        </div>
+
+        <div className="form-grid">
+          {domain === 'JEE' ? (
+            <>
+              <div className="form-group">
+                <label>JEE Rank</label>
+                <input type="number" name="user_rank" value={formData.user_rank} onChange={handleJeeChange} required />
+              </div>
+              <div className="form-group">
+                <label>Exam Mode</label>
+                <select name="exam_type" value={formData.exam_type} onChange={handleJeeChange}>
+                  <option value="JEE Advanced">JEE Advanced (IITs)</option>
+                  <option value="JEE Main">JEE Main (NITs & IIITs)</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Category</label>
+                <select name="category" value={formData.category} onChange={handleJeeChange}>
+                  <option value="GEN">OPEN (General)</option>
+                  <option value="OBC-NCL">OBC-NCL</option>
+                  <option value="SC">SC</option>
+                  <option value="ST">ST</option>
+                  <option value="GEN-EWS">GEN-EWS</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Quota</label>
+                <select name="quota" value={formData.quota} onChange={handleJeeChange}>
+                  <option value="AI">All India</option>
+                  <option value="OS">Other State</option>
+                  <option value="HS">Home State</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Gender Pool</label>
+                <select name="pool" value={formData.pool} onChange={handleJeeChange}>
+                  <option value="Gender-Neutral">Gender-Neutral</option>
+                  <option value="Female-Only">Female-Only</option>
+                </select>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="form-group">
+                <label>NEET Rank</label>
+                <input type="number" name="user_rank" value={neetFormData.user_rank} onChange={handleNeetChange} required />
+              </div>
+              <div className="form-group">
+                <label>Allotted Category Constraint</label>
+                <select name="category" value={neetFormData.category} onChange={handleNeetChange}>
+                  <option value="OPEN SEAT">OPEN SEAT</option>
+                  <option value="ALL INDIA">ALL INDIA</option>
+                  <option value="DEEMED/PAID">DEEMED / PAID</option>
+                  <option value="EMPLOYEES">EMPLOYEE QUOTA / ESIC</option>
+                  <option value="DELHI">DELHI REGIONAL</option>
+                  <option value="MUSLIM">MINORITY (MUSLIM)</option>
+                </select>
+              </div>
+            </>
+          )}
+        </div>
+        <button type="submit" className="submit-btn" disabled={isLoading}>
+          {isLoading ? 'Booting ML Network...' : 'Predict Admission Tier'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default PredictionForm;

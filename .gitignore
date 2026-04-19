@@ -1,0 +1,10 @@
+/data/
+__pycache__/
+*.pyc
+.env
+/frontend/node_modules/
+/frontend/dist/
+/.vscode/
+/models/**/*.pkl
+# Wait, I shouldn't ignore models entirely if they want model weights pushed? The prompt said "push spark and ML models".
+# Actually, I'll un-ignore models/ so they are tracked, unless they exceed githubs limits. XGBoost is like 5MB, which is fine.
