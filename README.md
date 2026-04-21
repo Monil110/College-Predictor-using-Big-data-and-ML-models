@@ -1,8 +1,8 @@
 # PredictMe — Big Data Admission Predictor 🚀
 
-PredictMe is a powerful, end-to-end Big Data and Machine Learning platform engineered to predict admission tier probabilities for complex nationwide entrance examinations — specifically **Engineering (JEE)** and **Medical (NEET)**.
+PredictMe is a powerful, end-to-end Big Data and Machine Learning platform engineered to predict admission tier probabilities for complex nationwide entrance examinations — specifically **Engineering (JEE)**, **Medical (NEET)**, and **State Engineering (KCET)**.
 
-The platform bridges massive raw data handling via **PySpark**, highly optimized tree-based predictive algorithms via **XGBoost & Optuna**, rapid and scalable serving bounds via **FastAPI** & **Redis**, and an interactive graphical layer through **React/Vite**.
+The platform bridges massive raw data handling via **PySpark**, highly optimized tree-based predictive algorithms via **XGBoost, CatBoost & Optuna**, rapid and scalable serving bounds via **FastAPI** & **Redis**, and an interactive graphical layer through **React/Vite**.
 
 ---
 
@@ -10,17 +10,17 @@ The platform bridges massive raw data handling via **PySpark**, highly optimized
 
 ### 1. Data Ingestion & Engineering `(/spark)`
 Because legacy CSV dumps span millions of fractional iterations across historically messy rows, the foundational architecture scales purely natively atop **Apache Spark**.
-- **`spark/ingest.py` & `spark/neet_ingest.py`**: Drops erratic structural nulls, parses string hierarchies, injects structured DataFrames enforcing unified Schema (safely resolving `1.01` fractional splits globally), and finally converts constraints down to highly performant **Parquet Format** bound to local containerized nodes `/app/data/processed/`.
-- **`spark/features.py` & `spark/neet_features.py`**: Executes complex cross-dimensional Spark groupings aggregating exactly what elements constitute predictive bounds — defining `{Institute, Category, Quota}` against aggregated functions to lock in actual historic endpoints (like `closing_rank` thresholds & `std_dev` variants across years).
+- **`spark/ingest.py`, `spark/neet_ingest.py` & `spark/kcet_ingest.py`**: Drops erratic structural nulls, parses string hierarchies, injects structured DataFrames enforcing unified Schema, and finally converts constraints down to highly performant **Parquet Format** bound to local containerized nodes `/app/data/processed/`.
+- **`spark/features.py`, `spark/neet_features.py` & `spark/kcet_features.py`**: Executes complex cross-dimensional Spark groupings aggregating exactly what elements constitute predictive bounds — defining `{Institute, Course, Category, Quota...}` against aggregated functions to lock in actual historic endpoints (like `closing_rank` thresholds).
 
 ### 2. Machine Learning Pipeline `(/ML)`
-Instead of blindly predicting the next rank, we algorithmically derive competitive boundaries utilizing non-linear mathematical boundaries dynamically.
-- **`ML/jee/train.py` & `ML/neet/train.py`**: Extracts the structured Parquet models over localized Panda objects. Leverages **Optuna** to perform Bayesian Optimization (TPE) parameter sweeps testing thousands of parameters (Trees, Depths) against 5-fold iterations.
+Instead of blindly predicting the next rank, we algorithmically derive competitive boundaries utilizing non-linear mathematical boundaries dynamically mapped against heavy categorical architectures.
+- **`ML/jee/`, `ML/neet/`, `ML/kcet/`**: Extracts structured Parquets iteratively. Leverages **Optuna** to perform Bayesian Optimization testing thousands of parameters against 5-fold iterations. While JEE and NEET handle relationships across generalized distributions via XGBoost, KCET leverages **CatBoost** explicitly to safely extrapolate its heavy class assignments.
 - Logs constraints natively leveraging `np.log1p` on target elements (`closing_rank`) preventing outlier variants (obscure college jumps) from dramatically burning localized weights natively. Evaluates RMSE and reliably writes `model.pkl` and associative structural dependencies `encoders.pkl` uniquely down cleanly into `/models`.
 
 ### 3. Unified API & Redis Caching `(/backend)`
 We utilize a monolithic unified microservice to intercept queries intelligently.
-- **`backend/main.py`**: Serves as the FastAPI controller routing the dual-endpoints (`/predict` for JEE and `/predict/neet` for Medical models). It deserializes user bounds against integer mappings identically tracking precisely identical LabelEncoder targets mapped from Training stages.
+- **`backend/main.py`**: Serves as the FastAPI controller securely routing the unique domains (`/predict` for JEE, `/predict/neet` for Medical, `/predict/kcet` for State Engineering). It conditionally manages runtime executions dynamically utilizing the corresponding pre-compiled structures securely deployed under `/models`!
 - **How Redis Works Here**: Predictive tree traversals computationally scale. Because millions of users share duplicate exact queries (e.g., `Rank 5000, Category: OBC`), the Fast API endpoint strictly evaluates `key = neet_5000_OBC`. If it hits the deployed Docker **Redis Cluster**, it completely skips XGBoost and dynamically serves JSON data directly bound safely inside nanoseconds.
 - **Inference Algorithms**: Defines precisely where you map safely:
   - **Safe**: `Projected Cutoff > Candidate Rank`
@@ -50,6 +50,7 @@ The entire big-data storage and execution pipeline leverages tightly integrated 
    ```bash
    python ML/jee/train.py
    python ML/neet/train.py
+   python ML/kcet/train.py
    ```
 3. **Launch the FastAPI Server**
    ```bash

@@ -14,7 +14,12 @@ function App() {
     try {
       const { domain, ...payload } = data;
       // Cross-route seamlessly within the monolithic backend
-      const endpoint = domain === 'NEET' ? 'http://localhost:8000/predict/neet' : 'http://localhost:8000/predict';
+      let endpoint = 'http://localhost:8000/predict';
+      if (domain === 'NEET') {
+        endpoint = 'http://localhost:8000/predict/neet';
+      } else if (domain === 'KCET') {
+        endpoint = 'http://localhost:8000/predict/kcet';
+      }
       
       const response = await axios.post(endpoint, payload);
       setResults(response.data.data);
@@ -35,7 +40,7 @@ function App() {
       
       <PredictionForm onPredict={handlePredict} isLoading={isLoading} />
       
-      {isLoading && <div className="loading">Crunching 90M+ Historical Rows via PySpark & XGBoost...</div>}
+      {isLoading && <div className="loading">Crunching 90M+ Historical Rows via PySpark & XGBoost/CatBoost...</div>}
       
       {!isLoading && results && <ResultsTable results={results} />}
     </div>

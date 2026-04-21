@@ -16,6 +16,14 @@ const PredictionForm = ({ onPredict, isLoading }) => {
     category: 'OPEN SEAT'
   });
 
+  const [kcetFormData, setKcetFormData] = useState({
+    user_rank: 25000,
+    category: 'GM',
+    base_category: 'GM',
+    quota: 'General',
+    region: 'General'
+  });
+
   const handleDomainChange = (e) => {
     setDomain(e.target.value);
   };
@@ -28,10 +36,16 @@ const PredictionForm = ({ onPredict, isLoading }) => {
     setNeetFormData({ ...neetFormData, [e.target.name]: e.target.value });
   };
 
+  const handleKcetChange = (e) => {
+    setKcetFormData({ ...kcetFormData, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (domain === 'JEE') {
       onPredict({ ...formData, user_rank: parseInt(formData.user_rank, 10), domain: 'JEE' });
+    } else if (domain === 'KCET') {
+      onPredict({ ...kcetFormData, user_rank: parseInt(kcetFormData.user_rank, 10), domain: 'KCET' });
     } else {
       // Maps the frontend visual `user_rank` logically to what `backend/neet/` expects: `candidate_rank`
       onPredict({ ...neetFormData, candidate_rank: parseInt(neetFormData.user_rank, 10), domain: 'NEET' });
@@ -47,6 +61,10 @@ const PredictionForm = ({ onPredict, isLoading }) => {
             <label style={{ display: "inline-flex", alignItems: "center", marginRight: "30px", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
               <input type="radio" value="JEE" checked={domain === 'JEE'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
               Engineering (JEE)
+            </label>
+            <label style={{ display: "inline-flex", alignItems: "center", marginRight: "30px", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
+              <input type="radio" value="KCET" checked={domain === 'KCET'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
+              Engineering (KCET)
             </label>
             <label style={{ display: "inline-flex", alignItems: "center", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
               <input type="radio" value="NEET" checked={domain === 'NEET'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
@@ -94,7 +112,7 @@ const PredictionForm = ({ onPredict, isLoading }) => {
                 </select>
               </div>
             </>
-          ) : (
+          ) : domain === 'NEET' ? (
             <>
               <div className="form-group">
                 <label>NEET Rank</label>
@@ -112,7 +130,57 @@ const PredictionForm = ({ onPredict, isLoading }) => {
                 </select>
               </div>
             </>
-          )}
+          ) : domain === 'KCET' ? (
+            <>
+              <div className="form-group">
+                <label>KCET Rank</label>
+                <input type="number" name="user_rank" value={kcetFormData.user_rank} onChange={handleKcetChange} required />
+              </div>
+              <div className="form-group">
+                <label>Rank Category</label>
+                <select name="category" value={kcetFormData.category} onChange={handleKcetChange}>
+                  <option value="GM">GM</option>
+                  <option value="1G">1G</option>
+                  <option value="2AG">2AG</option>
+                  <option value="2BG">2BG</option>
+                  <option value="3AG">3AG</option>
+                  <option value="3BG">3BG</option>
+                  <option value="SCG">SCG</option>
+                  <option value="STG">STG</option>
+                  <option value="GMK">GMK (Kannada)</option>
+                  <option value="GMR">GMR (Rural)</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Base Caste Category</label>
+                <select name="base_category" value={kcetFormData.base_category} onChange={handleKcetChange}>
+                  <option value="GM">GM</option>
+                  <option value="1">1</option>
+                  <option value="2A">2A</option>
+                  <option value="2B">2B</option>
+                  <option value="3A">3A</option>
+                  <option value="3B">3B</option>
+                  <option value="SC">SC</option>
+                  <option value="ST">ST</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Quota Extension</label>
+                <select name="quota" value={kcetFormData.quota} onChange={handleKcetChange}>
+                  <option value="General">General</option>
+                  <option value="Kannada">Kannada</option>
+                  <option value="Rural">Rural</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Geographic Region</label>
+                <select name="region" value={kcetFormData.region} onChange={handleKcetChange}>
+                  <option value="General">General Range</option>
+                  <option value="Hyderabad-Karnataka">Hyderabad-Karnataka (HK)</option>
+                </select>
+              </div>
+            </>
+          ) : null}
         </div>
         <button type="submit" className="submit-btn" disabled={isLoading}>
           {isLoading ? 'Booting ML Network...' : 'Predict Admission Tier'}

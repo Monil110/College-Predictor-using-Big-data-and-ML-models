@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from catboost import CatBoostRegressor
 from pydantic import BaseModel
 import redis
 
@@ -60,6 +61,21 @@ except:
     neet_model, neet_encoders, neet_feature_cols = None, {}, []
 
 # -------------------------
+# Load KCET Models
+# -------------------------
+KCET_MODELS_DIR = "/app/models/kcet" if os.path.exists("/app/models/kcet") else "models/kcet"
+
+try:
+    kcet_model = CatBoostRegressor()
+    kcet_model.load_model(f"{KCET_MODELS_DIR}/kcet_model.cbm")
+    with open(f"{KCET_MODELS_DIR}/kcet_encoders.pkl", "rb") as f:
+        kcet_encoders = pickle.load(f)
+    with open(f"{KCET_MODELS_DIR}/kcet_feature_cols.pkl", "rb") as f:
+        kcet_feature_cols = pickle.load(f)
+except:
+    kcet_model, kcet_encoders, kcet_feature_cols = None, {}, []
+
+# -------------------------
 # Load Dataset (JEE)
 # -------------------------
 try:
@@ -97,6 +113,13 @@ class InputData(BaseModel):
 class NeetInputData(BaseModel):
     candidate_rank: int
     category: str
+
+class KcetInputData(BaseModel):
+    user_rank: int
+    category: str
+    base_category: str
+    quota: str
+    region: str
 
 # -------------------------
 # Helpers (JEE)
@@ -252,6 +275,64 @@ def predict_neet(data: NeetInputData):
             "predicted_cutoff": int(row["pred_closing_rank"]),
             "tier": "Likely",
             "course": "MBBS"
+        })
+
+    if r: r.setex(key, 3600, json.dumps(structured_json))
+    return {"source": "model", "data": structured_json}
+
+# -------------------------
+# Validated Endpoint for KCET
+# -------------------------
+@app.post("/predict/kcet")
+def predict_kcet(data: KcetInputData):
+    key = f"kcet_{data.user_rank}_{data.category}_{data.base_category}_{data.quota}_{data.region}"
+    if r:
+        cached = r.get(key)
+        if cached: return {"source": "cache", "data": json.loads(cached)}
+
+    if kcet_model is None:
+        return {"source": "error", "error": "KCET CatBoost model is missing from path"}
+
+    colleges = kcet_encoders.get("college_name", [])
+    courses = kcet_encoders.get("course_name", [])
+    
+    if not colleges or not courses:
+        return {"source": "error", "error": "No college or course encoding boundaries found"}
+
+    df_grid = pd.MultiIndex.from_product([colleges, courses], names=["college_name", "course_name"]).to_frame(index=False)
+    
+    df_grid["category"] = data.category.upper()
+    df_grid["base_category"] = data.base_category.upper()
+    df_grid["quota"] = data.quota.upper()
+    df_grid["region"] = data.region.upper()
+    df_grid["year"] = 2026
+    
+    X = df_grid[kcet_feature_cols]
+    
+    log_preds = kcet_model.predict(X)
+    pred_ranks = np.expm1(log_preds)
+    
+    df_grid["pred_closing_rank"] = pred_ranks
+    
+    df_safe = df_grid[df_grid["pred_closing_rank"] > data.user_rank]
+    df_likely = df_grid[(df_grid["pred_closing_rank"] > (data.user_rank - 5000)) & (df_grid["pred_closing_rank"] <= data.user_rank)]
+
+    structured_json = {"Safe": [], "Likely": []}
+    
+    for _, row in df_safe.sort_values("pred_closing_rank", ascending=False).head(15).iterrows():
+        structured_json["Safe"].append({
+            "institute": row["college_name"],
+            "predicted_cutoff": int(row["pred_closing_rank"]),
+            "tier": "Safe",
+            "course": row["course_name"]
+        })
+
+    for _, row in df_likely.sort_values("pred_closing_rank", ascending=False).head(15).iterrows():
+        structured_json["Likely"].append({
+            "institute": row["college_name"],
+            "predicted_cutoff": int(row["pred_closing_rank"]),
+            "tier": "Likely",
+            "course": row["course_name"]
         })
 
     if r: r.setex(key, 3600, json.dumps(structured_json))
