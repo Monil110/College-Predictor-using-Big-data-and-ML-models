@@ -24,14 +24,12 @@ app.add_middleware(
 # Ensures paths work regardless of where Render launches the process
 # -------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-def model_path(*parts):
-    return os.path.join(BASE_DIR, *parts)
+ROOT_DIR = os.path.dirname(BASE_DIR)
 
 # -------------------------
 # Load JEE Models
 # -------------------------
-MODELS_DIR = model_path("models", "jee")
+MODELS_DIR = os.path.join(ROOT_DIR, "models", "jee")
 
 try:
     with open(os.path.join(MODELS_DIR, "iit_model.pkl"), "rb") as f:
@@ -68,7 +66,7 @@ except Exception as e:
 # -------------------------
 # Load NEET Models
 # -------------------------
-NEET_MODELS_DIR = model_path("models", "neet")
+NEET_MODELS_DIR = os.path.join(ROOT_DIR, "models", "neet")
 
 try:
     with open(os.path.join(NEET_MODELS_DIR, "neet_model.pkl"), "rb") as f:
@@ -85,7 +83,7 @@ except Exception as e:
 # -------------------------
 # Load KCET Models
 # -------------------------
-KCET_MODELS_DIR = model_path("models", "kcet")
+KCET_MODELS_DIR = os.path.join(ROOT_DIR, "models", "kcet")
 
 try:
     kcet_model = CatBoostRegressor()
@@ -102,8 +100,10 @@ except Exception as e:
 # -------------------------
 # Load Dataset (JEE)
 # -------------------------
+DATA_PATH = os.path.join(ROOT_DIR, "data", "processed", "features.csv")
+
 try:
-    df = pd.read_csv(model_path("data", "processed", "features.csv"))
+    df = pd.read_csv(DATA_PATH)
     if "institute_type" in df.columns:
         df["institute_type"] = df["institute_type"].astype(str).str.upper().str.strip()
     else:
