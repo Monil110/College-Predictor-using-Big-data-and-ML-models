@@ -8,28 +8,34 @@ function App() {
   const [results, setResults] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
 
+  const BASE_URL = 'https://college-predictor-using-big-data-and-ml.onrender.com'
+
   const handlePredict = async (data) => {
-    setIsLoading(true);
-    setResults(null);
+    setIsLoading(true)
+    setResults(null)
+
     try {
-      const { domain, ...payload } = data;
-      // Cross-route seamlessly within the monolithic backend
-      let endpoint = 'http://localhost:8000/predict';
+      const { domain, ...payload } = data
+
+      let endpoint = `${BASE_URL}/predict`
+
       if (domain === 'NEET') {
-        endpoint = 'http://localhost:8000/predict/neet';
-      } else if (domain === 'KCET') {
-        endpoint = 'http://localhost:8000/predict/kcet';
+        endpoint = `${BASE_URL}/predict/neet`
       }
-      
-      const response = await axios.post(endpoint, payload);
-      setResults(response.data.data);
+      else if (domain === 'KCET') {
+        endpoint = `${BASE_URL}/predict/kcet`
+      }
+
+      const response = await axios.post(endpoint, payload)
+      setResults(response.data.data)
+
     } catch (error) {
-      console.error("API Error:", error);
-      alert("Failed to connect to the unified backend instance. Ensure it exists on 8000.");
+      console.error("API Error:", error)
+      alert("Failed to connect to deployed backend.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="app-container">
@@ -37,11 +43,15 @@ function App() {
         <h1>PredictMe</h1>
         <p>Big Data & ML Powered Admission Intelligence</p>
       </div>
-      
+
       <PredictionForm onPredict={handlePredict} isLoading={isLoading} />
-      
-      {isLoading && <div className="loading">Crunching 90M+ Historical Rows via PySpark & XGBoost/CatBoost...</div>}
-      
+
+      {isLoading && (
+        <div className="loading">
+          Crunching 90M+ Historical Rows via PySpark & XGBoost/CatBoost...
+        </div>
+      )}
+
       {!isLoading && results && <ResultsTable results={results} />}
     </div>
   )
