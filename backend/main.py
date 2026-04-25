@@ -42,17 +42,17 @@ def load_jee_parquet(path: str) -> pd.DataFrame:
 try:
     iit_model = CatBoostClassifier()
     iit_model.load_model(os.path.join(MODELS_DIR, "model_iit.cbm"))
-    print("✅ IIT model loaded")
+    print("[SUCCESS] IIT model loaded")
 except Exception as e:
-    print(f"❌ IIT model load failed: {e}")
+    print(f"[ERROR] IIT model load failed: {e}")
     iit_model = None
 
 try:
     nit_model = CatBoostClassifier()
     nit_model.load_model(os.path.join(MODELS_DIR, "model_nit.cbm"))
-    print("✅ NIT model loaded")
+    print("[SUCCESS] NIT model loaded")
 except Exception as e:
-    print(f"❌ NIT model load failed: {e}")
+    print(f"[ERROR] NIT model load failed: {e}")
     nit_model = None
 
 IIT_PARQUET = os.path.join(ROOT_DIR, "data", "processed", "jee_features", "iit")
@@ -61,9 +61,9 @@ NIT_PARQUET = os.path.join(ROOT_DIR, "data", "processed", "jee_features", "nit")
 try:
     iit_features_df = load_jee_parquet(IIT_PARQUET)
     nit_features_df = load_jee_parquet(NIT_PARQUET)
-    print("✅ JEE features data loaded")
+    print("[SUCCESS] JEE features data loaded")
 except Exception as e:
-    print(f"❌ JEE features load failed: {e}")
+    print(f"[ERROR] JEE features load failed: {e}")
     iit_features_df = pd.DataFrame()
     nit_features_df = pd.DataFrame()
 
@@ -80,9 +80,9 @@ try:
         neet_encoders = pickle.load(f)
     with open(os.path.join(NEET_MODELS_DIR, "neet_feature_cols.pkl"), "rb") as f:
         neet_feature_cols = pickle.load(f)
-    print("✅ NEET model loaded")
+    print("[SUCCESS] NEET model loaded")
 except Exception as e:
-    print(f"❌ NEET model load failed: {e}")
+    print(f"[ERROR] NEET model load failed: {e}")
     neet_model, neet_encoders, neet_feature_cols = None, {}, []
 
 # -------------------------
@@ -97,9 +97,9 @@ try:
         kcet_encoders = pickle.load(f)
     with open(os.path.join(KCET_MODELS_DIR, "kcet_feature_cols.pkl"), "rb") as f:
         kcet_feature_cols = pickle.load(f)
-    print("✅ KCET model loaded")
+    print("[SUCCESS] KCET model loaded")
 except Exception as e:
-    print(f"❌ KCET model load failed: {e}")
+    print(f"[ERROR] KCET model load failed: {e}")
     kcet_model, kcet_encoders, kcet_feature_cols = None, {}, []
 
 # -------------------------
@@ -108,9 +108,9 @@ except Exception as e:
 try:
     r = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
     r.ping()
-    print("✅ Redis connected")
+    print("[SUCCESS] Redis connected")
 except Exception as e:
-    print(f"⚠️ Redis unavailable (caching disabled): {e}")
+    print(f"[WARN] Redis unavailable (caching disabled): {e}")
     r = None
 
 # -------------------------
