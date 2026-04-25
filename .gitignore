@@ -1,8 +1,3 @@
-/data/*
-!/data/raw/
-!/data/processed/
-!/data/processed/features.csv
-__pycache__/
 *.pyc
 .env
 /frontend/node_modules/
