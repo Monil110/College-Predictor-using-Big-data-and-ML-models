@@ -138,7 +138,7 @@ def encode_categoricals(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     return df, encoders
 
 
-# ─── Tuning ───────────────────────────────────────────────────────────────────
+# ─── Tuning ──────────────────────────────────────────────────────────────────
 
 def tune_catboost(
     X_train: pd.DataFrame,

@@ -1,128 +1,196 @@
-import pickle
-import pandas as pd
-import numpy as np
-import warnings
+"""
+jee_predict.py
+─────────────────────────────────────────────────────────────────────────────
+Stage 4: Given a student's rank + filters, return eligible colleges ranked
+         by probability.
+
+Usage:
+    python jee_predict.py \
+        --model_type iit \
+        --rank 5000 \
+        --quota AI \
+        --pool Gender-Neutral \
+        --category GEN \
+        --top 20
+─────────────────────────────────────────────────────────────────────────────
+"""
+
+import argparse
+import glob
 import os
 
-warnings.filterwarnings('ignore')
+import pandas as pd
+from catboost import CatBoostClassifier, Pool
 
-# -------------------------
-# Anchor paths to project root
-# predict.py is at: /src/jee/predict.py  (or /src/backend/jee/predict.py)
-# ROOT_DIR resolves to: /src
-# -------------------------
-_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
-ROOT_DIR = os.path.dirname(_FILE_DIR)  # one level up from jee/ folder
+# ─── Config ──────────────────────────────────────────────────────────────────
 
-MODELS_DIR = os.path.join(ROOT_DIR, "models", "jee")
-DATA_PATH  = os.path.join(ROOT_DIR, "data", "processed", "features.csv")
+MODEL_DIR   = "/app/models"
+IIT_PARQUET = "/app/data/processed/jee_features"
+NIT_PARQUET = "/app/data/processed/jee_features"
+
+CATEGORICAL_FEATURES = [
+    "institute_short",
+    "program_name",
+    "degree_short",
+    "category",
+    "quota",
+    "pool",
+    "trend_direction",
+]
+
+NUMERIC_FEATURES = [
+    "closing_rank_max",
+    "opening_rank_min",
+    "closing_rank_avg",
+    "closing_rank_std",
+    "rank_spread_avg",
+    "rank_pressure",
+    "difficulty_pct",
+    "years_available",
+    "yoy_rank_change",
+    "student_rank",
+]
 
 
-def engineer_features(req_df: pd.DataFrame) -> pd.DataFrame:
-    req_df = req_df.copy()
-    req_df["rank_spread"] = req_df["closing_rank"] - req_df["opening_rank"]
+# ─── Helpers ─────────────────────────────────────────────────────────────────
 
-    req_df["is_dual_degree"] = req_df["degree_short"].str.contains(
-        r"IDD|M\.Tech|MSc|Dual", case=False, na=False
-    ).astype(int)
+def load_parquet(path: str) -> pd.DataFrame:
+    files = glob.glob(f"{path}/**/*.parquet", recursive=True)
+    if not files:
+        raise FileNotFoundError(f"No parquet files at: {path}")
+    return pd.concat([pd.read_parquet(f) for f in files], ignore_index=True)
 
-    req_df["is_home_state"] = (req_df["quota"].str.upper() == "HS").astype(int)
-    req_df["is_female_pool"] = req_df["pool"].str.lower().str.contains("female", na=False).astype(int)
-    req_df["is_pwd"] = req_df["category"].str.contains("PWD", na=False).astype(int)
-    req_df["is_ews"] = req_df["category"].str.contains("EWS", na=False).astype(int)
 
-    req_df["round_norm"] = req_df.get("round_no", 6) / 7.0
+def prepare_features(df: pd.DataFrame, student_rank: int) -> pd.DataFrame:
+    df = df.copy()
+    df["student_rank"] = student_rank
 
-    if "year" in req_df.columns:
-        req_df["year_offset"] = req_df["year"] - req_df["year"].min()
+    for col in NUMERIC_FEATURES:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+
+    for col in CATEGORICAL_FEATURES:
+        if col in df.columns:
+            df[col] = df[col].fillna("UNKNOWN").astype(str)
+
+    all_cols = NUMERIC_FEATURES + CATEGORICAL_FEATURES
+    available = [c for c in all_cols if c in df.columns]
+    return df[available]
+
+
+def predict_eligible(
+    model_type: str,
+    student_rank: int,
+    quota: str,
+    pool: str,
+    category: str,
+    top_n: int = 20,
+    prob_threshold: float = 0.40,
+) -> pd.DataFrame:
+
+    model_path = os.path.join(MODEL_DIR, f"model_{model_type.lower()}.cbm")
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(
+            f"Model not found: {model_path}\n"
+            f"Run jee_train.py first."
+        )
+
+    model = CatBoostClassifier()
+    model.load_model(model_path)
+
+    parquet_path = IIT_PARQUET if model_type.lower() == "iit" else NIT_PARQUET
+    features_df  = load_parquet(parquet_path)
+
+    # Filter to student's quota/pool/category to avoid irrelevant rows
+    mask = (
+        (features_df["quota"].str.upper()    == quota.upper()) &
+        (features_df["pool"].str.lower()     == pool.lower()) &
+        (features_df["category"].str.upper() == category.upper())
+    )
+    filtered = features_df[mask].reset_index(drop=True)
+
+    if filtered.empty:
+        print(f"  No data found for quota={quota}, pool={pool}, category={category}")
+        return pd.DataFrame()
+
+    X = prepare_features(filtered, student_rank)
+    cat_cols = [c for c in CATEGORICAL_FEATURES if c in X.columns]
+
+    pool_obj = Pool(X, cat_features=cat_cols)
+    probs    = model.predict_proba(pool_obj)[:, 1]
+
+    results = filtered[["institute_short", "program_name", "degree_short",
+                         "closing_rank_max", "closing_rank_avg",
+                         "trend_direction", "difficulty_pct"]].copy()
+    results["eligibility_prob"] = probs.round(4)
+    results["student_rank"]     = student_rank
+
+    # Filter by threshold and sort
+    results = (
+        results[results["eligibility_prob"] >= prob_threshold]
+        .sort_values("eligibility_prob", ascending=False)
+        .head(top_n)
+        .reset_index(drop=True)
+    )
+    results.index += 1  # 1-based rank
+    return results
+
+
+# ─── CLI ─────────────────────────────────────────────────────────────────────
+
+def parse_args():
+    p = argparse.ArgumentParser(description="JEE College Predictor")
+    p.add_argument("--model_type", choices=["iit", "nit"], required=True)
+    p.add_argument("--rank",       type=int,   required=True,
+                   help="Student's JEE Advanced / Main rank")
+    p.add_argument("--quota",      default="AI",
+                   choices=["AI", "OS", "HS", "JK", "GO"],
+                   help="Seat quota")
+    p.add_argument("--pool",       default="Gender-Neutral",
+                   choices=["Gender-Neutral", "Female-Only"])
+    p.add_argument("--category",   default="GEN",
+                   choices=["GEN", "OBC-NCL", "SC", "ST", "GEN-EWS",
+                            "GEN-PWD", "OBC-NCL-PWD", "SC-PWD", "ST-PWD"])
+    p.add_argument("--top",        type=int, default=20)
+    p.add_argument("--threshold",  type=float, default=0.40,
+                   help="Minimum eligibility probability to include")
+    return p.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    print(f"\n{'='*60}")
+    print(f"  JEE College Predictor")
+    print(f"  Model   : {args.model_type.upper()}")
+    print(f"  Rank    : {args.rank:,}")
+    print(f"  Quota   : {args.quota}  |  Pool: {args.pool}  |  Category: {args.category}")
+    print(f"{'='*60}\n")
+
+    results = predict_eligible(
+        model_type     = args.model_type,
+        student_rank   = args.rank,
+        quota          = args.quota,
+        pool           = args.pool,
+        category       = args.category,
+        top_n          = args.top,
+        prob_threshold = args.threshold,
+    )
+
+    if results.empty:
+        print("  No eligible colleges found for given parameters.")
     else:
-        req_df["year_offset"] = 0
+        print(f"  Top {len(results)} eligible {args.model_type.upper()} colleges:\n")
+        pd.set_option("display.max_colwidth", 40)
+        pd.set_option("display.width", 120)
+        print(results.to_string())
+        print()
 
-    return req_df
-
-
-def encode(encoders, col, val):
-    le = encoders.get(col)
-    if le is None:
-        return 0
-    if val in le.classes_:
-        return int(le.transform([val])[0])
-    if "__UNKNOWN__" in le.classes_:
-        return int(le.transform(["__UNKNOWN__"])[0])
-    return 0
-
-
-def predict_admission(rank, institute, program, category, quota, pool, round_no=6, latest_year=2021):
-    try:
-        inst_type = "IIT" if "IIT" in institute.upper() else "NIT"
-        prefix = inst_type.lower()
-
-        with open(os.path.join(MODELS_DIR, f"{prefix}_model.pkl"), "rb") as f:
-            model = pickle.load(f)
-        with open(os.path.join(MODELS_DIR, f"{prefix}_encoders.pkl"), "rb") as f:
-            encoders = pickle.load(f)
-        with open(os.path.join(MODELS_DIR, "feature_metadata.pkl"), "rb") as f:
-            metadata = pickle.load(f)
-
-    except FileNotFoundError as e:
-        return {"error": f"Model file not found: {e}"}
-
-    try:
-        df = pd.read_csv(DATA_PATH)
-    except Exception as e:
-        return {"error": f"Failed to load features.csv: {e}"}
-
-    temp = df[
-        (df["institute_short"] == institute) &
-        (df["program_name"] == program) &
-        (df["category"] == category) &
-        (df["quota"] == quota) &
-        (df["pool"] == pool)
-    ].copy()
-
-    if temp.empty:
-        return {"error": "Could not find corresponding historical data for these parameters in features.csv."}
-
-    temp = engineer_features(temp).iloc[[0]]
-
-    X_dict = {}
-    for col in metadata.get("all_cols", []):
-        if col in metadata.get("cat_cols", []):
-            X_dict[col] = temp[col].apply(lambda x: encode(encoders, col, x))
-        else:
-            X_dict[col] = pd.to_numeric(temp[col], errors="coerce").fillna(0)
-
-    X = pd.DataFrame(X_dict)
-
-    predicted_cutoff_log = model.predict(X)[0]
-    predicted_cutoff = int(np.maximum(np.expm1(predicted_cutoff_log), 1))
-
-    diff = predicted_cutoff - rank
-
-    if diff >= 0:
-        tier = "Safe"
-    elif diff >= -1500:
-        tier = "Likely"
-    else:
-        tier = "Unlikely"
-
-    return {
-        "institute": institute,
-        "program": program,
-        "predicted_cutoff": predicted_cutoff,
-        "user_rank": rank,
-        "chance_bucket": tier,
-    }
+        # Optionally save to CSV
+        out_csv = f"/app/data/predictions_{args.model_type}_{args.rank}.csv"
+        results.to_csv(out_csv, index=True)
+        print(f"  Saved → {out_csv}")
 
 
 if __name__ == "__main__":
-    print("Running sample prediction test...")
-    res = predict_admission(
-        rank=50,
-        institute="IIT-Bombay",
-        program="Computer Science and Engineering",
-        category="GEN",
-        quota="AI",
-        pool="Gender-Neutral"
-    )
-    print(f"Result: {res}")
+    main()

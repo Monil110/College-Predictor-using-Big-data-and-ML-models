@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from catboost import CatBoostRegressor
+from catboost import CatBoostRegressor, CatBoostClassifier, Pool
 from pydantic import BaseModel
 import redis
+import glob
 
 app = FastAPI(title="College Predictor API (Unified)")
 
@@ -31,37 +32,41 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 # -------------------------
 MODELS_DIR = os.path.join(ROOT_DIR, "models", "jee")
 
+def load_jee_parquet(path: str) -> pd.DataFrame:
+    try:
+        return pd.read_parquet(path)
+    except Exception as e:
+        print(f"Failed to read parquet from {path}: {e}")
+        return pd.DataFrame()
+
 try:
-    with open(os.path.join(MODELS_DIR, "iit_model.pkl"), "rb") as f:
-        iit_model = pickle.load(f)
-    with open(os.path.join(MODELS_DIR, "iit_encoders.pkl"), "rb") as f:
-        iit_encoders = pickle.load(f)
-    with open(os.path.join(MODELS_DIR, "iit_feature_cols.pkl"), "rb") as f:
-        iit_feature_cols = pickle.load(f)
+    iit_model = CatBoostClassifier()
+    iit_model.load_model(os.path.join(MODELS_DIR, "model_iit.cbm"))
     print("✅ IIT model loaded")
 except Exception as e:
     print(f"❌ IIT model load failed: {e}")
-    iit_model, iit_encoders, iit_feature_cols = None, {}, []
+    iit_model = None
 
 try:
-    with open(os.path.join(MODELS_DIR, "nit_model.pkl"), "rb") as f:
-        nit_model = pickle.load(f)
-    with open(os.path.join(MODELS_DIR, "nit_encoders.pkl"), "rb") as f:
-        nit_encoders = pickle.load(f)
-    with open(os.path.join(MODELS_DIR, "nit_feature_cols.pkl"), "rb") as f:
-        nit_feature_cols = pickle.load(f)
+    nit_model = CatBoostClassifier()
+    nit_model.load_model(os.path.join(MODELS_DIR, "model_nit.cbm"))
     print("✅ NIT model loaded")
 except Exception as e:
     print(f"❌ NIT model load failed: {e}")
-    nit_model, nit_encoders, nit_feature_cols = None, {}, []
+    nit_model = None
+
+IIT_PARQUET = os.path.join(ROOT_DIR, "data", "processed", "jee_features", "iit")
+NIT_PARQUET = os.path.join(ROOT_DIR, "data", "processed", "jee_features", "nit")
 
 try:
-    with open(os.path.join(MODELS_DIR, "feature_metadata.pkl"), "rb") as f:
-        metadata = pickle.load(f)
-    print("✅ JEE metadata loaded")
+    iit_features_df = load_jee_parquet(IIT_PARQUET)
+    nit_features_df = load_jee_parquet(NIT_PARQUET)
+    print("✅ JEE features data loaded")
 except Exception as e:
-    print(f"❌ JEE metadata load failed: {e}")
-    metadata = {}
+    print(f"❌ JEE features load failed: {e}")
+    iit_features_df = pd.DataFrame()
+    nit_features_df = pd.DataFrame()
+
 
 # -------------------------
 # Load NEET Models
@@ -98,26 +103,6 @@ except Exception as e:
     kcet_model, kcet_encoders, kcet_feature_cols = None, {}, []
 
 # -------------------------
-# Load Dataset (JEE)
-# -------------------------
-DATA_PATH = os.path.join(ROOT_DIR, "data", "processed", "features.csv")
-
-try:
-    df = pd.read_csv(DATA_PATH)
-    if "institute_type" in df.columns:
-        df["institute_type"] = df["institute_type"].astype(str).str.upper().str.strip()
-    else:
-        df["institute_type"] = np.where(
-            df["institute_short"].str.upper().str.contains("IIT"),
-            "IIT",
-            "NIT"
-        )
-    print("✅ JEE dataset loaded")
-except Exception as e:
-    print(f"❌ JEE dataset load failed: {e}")
-    df = pd.DataFrame()
-
-# -------------------------
 # Redis (optional, graceful fallback)
 # -------------------------
 try:
@@ -152,30 +137,44 @@ class KcetInputData(BaseModel):
 # -------------------------
 # Helpers (JEE)
 # -------------------------
-def engineer_features(temp):
-    temp = temp.copy()
-    temp["rank_spread"] = temp["closing_rank"] - temp["opening_rank"]
-    temp["is_dual_degree"] = temp["degree_short"].astype(str).str.contains(r"IDD|M\.Tech|MSc|Dual", case=False, na=False).astype(int)
-    temp["is_home_state"] = (temp["quota"].astype(str).str.upper() == "HS").astype(int)
-    temp["is_female_pool"] = temp["pool"].astype(str).str.lower().str.contains("female", na=False).astype(int)
-    temp["is_pwd"] = temp["category"].astype(str).str.contains("PWD", na=False).astype(int)
-    temp["is_ews"] = temp["category"].astype(str).str.contains("EWS", na=False).astype(int)
-    temp["round_norm"] = pd.to_numeric(temp["round_no"], errors="coerce").fillna(6) / 7.0
-    if "year" in temp.columns:
-        temp["year_offset"] = pd.to_numeric(temp["year"], errors="coerce").fillna(0) - pd.to_numeric(temp["year"], errors="coerce").fillna(0).min()
-    else:
-        temp["year_offset"] = 0
-    return temp
+CATEGORICAL_FEATURES = [
+    "institute_short",
+    "program_name",
+    "degree_short",
+    "category",
+    "quota",
+    "pool",
+    "trend_direction",
+]
 
-def encode(encoders, col, val):
-    le = encoders.get(col)
-    if le is None:
-        return 0
-    if val in le.classes_:
-        return int(le.transform([val])[0])
-    if "__UNKNOWN__" in le.classes_:
-        return int(le.transform(["__UNKNOWN__"])[0])
-    return 0
+NUMERIC_FEATURES = [
+    "closing_rank_max",
+    "opening_rank_min",
+    "closing_rank_avg",
+    "closing_rank_std",
+    "rank_spread_avg",
+    "rank_pressure",
+    "difficulty_pct",
+    "years_available",
+    "yoy_rank_change",
+    "student_rank",
+]
+
+def prepare_jee_features(df: pd.DataFrame, student_rank: int) -> pd.DataFrame:
+    df = df.copy()
+    df["student_rank"] = student_rank
+
+    for col in NUMERIC_FEATURES:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+
+    for col in CATEGORICAL_FEATURES:
+        if col in df.columns:
+            df[col] = df[col].astype(object).fillna("UNKNOWN").astype(str)
+
+    all_cols = NUMERIC_FEATURES + CATEGORICAL_FEATURES
+    available = [c for c in all_cols if c in df.columns]
+    return df[available]
 
 # -------------------------
 # Routes
@@ -194,7 +193,7 @@ def health():
             "neet": neet_model is not None,
             "kcet": kcet_model is not None,
         },
-        "dataset_loaded": not df.empty,
+        "dataset_loaded": not iit_features_df.empty,
         "redis": r is not None,
     }
 
@@ -212,79 +211,64 @@ def predict_jee(data: InputData):
     if "advanced" in data.exam_type.lower():
         inst_type = "IIT"
         model = iit_model
-        encoders = iit_encoders
+        features_df = iit_features_df
     else:
         inst_type = "NIT"
         model = nit_model
-        encoders = nit_encoders
+        features_df = nit_features_df
 
     if model is None:
         return {"source": "error", "error": f"{inst_type} model not loaded. Check server logs."}
-    if df.empty:
-        return {"source": "error", "error": "features.csv not loaded. Check server logs."}
-    if not metadata:
-        return {"source": "error", "error": "feature_metadata.pkl not loaded. Check server logs."}
+    if features_df.empty:
+        return {"source": "error", "error": f"{inst_type} features data not loaded. Check server logs."}
 
-    temp = df[
-        (df["category"] == data.category) &
-        (df["quota"] == data.quota) &
-        (df["pool"] == data.pool) &
-        (df["institute_type"] == inst_type)
-    ].copy()
-
-    if temp.empty:
-        return {"source": "model", "data": {"Safe": [], "Likely": []}}
-
-    temp = engineer_features(temp)
-
-    X_dict = {}
-    for col in metadata["all_cols"]:
-        if col in metadata["cat_cols"]:
-            X_dict[col] = temp[col].apply(lambda x: encode(encoders, col, x))
-        else:
-            X_dict[col] = pd.to_numeric(temp[col], errors="coerce").fillna(0)
-    X = pd.DataFrame(X_dict)
-
-    pred_log = model.predict(X)
-    preds = np.expm1(pred_log).astype(int)
-    preds = np.maximum(preds, 1)
-
-    rows = []
-    for i, (_, row) in enumerate(temp.iterrows()):
-        pred = int(preds[i])
-        diff = pred - data.user_rank
-        if diff >= 0:
-            tier = "Safe"
-        elif diff >= -1500:
-            tier = "Likely"
-        else:
-            continue
-
-        rows.append({
-            "institute": row["institute_short"],
-            "program": row["program_name"],
-            "program_duration": str(row["program_duration"]) + " Years",
-            "degree_short": row["degree_short"],
-            "predicted_cutoff": pred,
-            "tier": tier,
-        })
-
-    best = {}
-    for row in rows:
-        k = (row["institute"], row["program"])
-        if k not in best:
-            best[k] = row
-        elif row["predicted_cutoff"] > best[k]["predicted_cutoff"]:
-            best[k] = row
-
-    rows_list = sorted(
-        list(best.values()),
-        key=lambda x: ({"Safe": 0, "Likely": 1}[x["tier"]], x["predicted_cutoff"])
+    mask = (
+        (features_df["quota"].str.upper()    == data.quota.upper()) &
+        (features_df["pool"].str.lower()     == data.pool.lower()) &
+        (features_df["category"].str.upper() == data.category.upper())
     )
+    filtered = features_df[mask].reset_index(drop=True)
 
     structured_json = {"Safe": [], "Likely": []}
-    for item in rows_list:
-        structured_json[item["tier"]].append(item)
+    
+    if not filtered.empty:
+        X = prepare_jee_features(filtered, data.user_rank)
+        cat_cols = [c for c in CATEGORICAL_FEATURES if c in X.columns]
+
+        pool_obj = Pool(X, cat_features=cat_cols)
+        probs = model.predict_proba(pool_obj)[:, 1]
+
+        results = filtered[["institute_short", "program_name", "degree_short",
+                             "closing_rank_max", "closing_rank_avg",
+                             "trend_direction", "difficulty_pct"]].copy()
+        
+        results["eligibility_prob"] = probs.round(4)
+        
+        for _, row in results.iterrows():
+            prob = row["eligibility_prob"]
+            if prob >= 0.70:
+                tier = "Safe"
+            elif prob >= 0.40:
+                tier = "Likely"
+            else:
+                continue
+
+            item = {
+                "institute": row["institute_short"],
+                "program": row["program_name"],
+                "program_duration": str(row.get("degree_short", "4 Years")),
+                "degree_short": row["degree_short"],
+                "predicted_cutoff": int(row.get("closing_rank_max", 0)),
+                "eligibility_prob": float(prob),
+                "tier": tier,
+            }
+            structured_json[tier].append(item)
+            
+        structured_json["Safe"].sort(key=lambda x: x["eligibility_prob"], reverse=True)
+        structured_json["Likely"].sort(key=lambda x: x["eligibility_prob"], reverse=True)
+        
+        structured_json["Safe"] = structured_json["Safe"][:20]
+        structured_json["Likely"] = structured_json["Likely"][:20]
 
     if r:
         r.setex(key, 3600, json.dumps(structured_json))

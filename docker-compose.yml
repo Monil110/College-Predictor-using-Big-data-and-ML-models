@@ -1,8 +1,22 @@
+networks:
+  jee-net:
+    driver: bridge
+
+volumes:
+  namenode_data:
+  datanode_data:
+  postgres_data:
+
+
 services:
+
   namenode:
     image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
     container_name: namenode
     hostname: namenode
+    restart: unless-stopped
+    networks:
+      - jee-net
     ports:
       - "9870:9870"
       - "9000:9000"
@@ -11,13 +25,22 @@ services:
       - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
     volumes:
       - namenode_data:/hadoop/dfs/name
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9870" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   datanode:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     container_name: datanode
     hostname: datanode
+    restart: unless-stopped
+    networks:
+      - jee-net
     depends_on:
-      - namenode
+      namenode:
+        condition: service_healthy
     ports:
       - "9864:9864"
       - "9866:9866"
@@ -31,48 +54,105 @@ services:
       - datanode_data:/hadoop/dfs/data
 
   spark-master:
-    image: apache/spark:3.5.1
-    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    image: apache/spark:3.5.0
     container_name: spark-master
     hostname: spark-master
+    networks:
+      - jee-net
     depends_on:
-      - namenode
-      - datanode
-    environment:
-      - SPARK_MODE=master
+      namenode:
+        condition: service_healthy
     ports:
       - "8080:8080"
       - "7077:7077"
+    command: >
+      /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host spark-master --port 7077 --webui-port 8080
     volumes:
       - ./:/app
 
   spark-worker:
-    image: apache/spark:3.5.1
-    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    image: apache/spark:3.5.0
     container_name: spark-worker
     hostname: spark-worker
+    networks:
+      - jee-net
     depends_on:
       - spark-master
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
+    command: >
+      /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     volumes:
       - ./:/app
+
+  postgres:
+    image: postgres:14
+    container_name: hive-postgres
+    hostname: hive-postgres
+    restart: unless-stopped
+    networks:
+      - jee-net
+    environment:
+      - POSTGRES_DB=metastore
+      - POSTGRES_USER=hive
+      - POSTGRES_PASSWORD=hive
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  hive-metastore:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: hive-metastore
+    hostname: hive-metastore
+    restart: unless-stopped
+    networks:
+      - jee-net
+    depends_on:
+      - postgres
+      - namenode
+    ports:
+      - "9083:9083"
+    environment:
+      - SERVICE_PRECONDITION=postgres:5432 namenode:9870
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://postgres:5432/metastore
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName=org.postgresql.Driver
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName=hive
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword=hive
+
+  hive-server:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: hive-server
+    hostname: hive-server
+    restart: unless-stopped
+    networks:
+      - jee-net
+    depends_on:
+      - hive-metastore
+    ports:
+      - "10000:10000"
+    environment:
+      - SERVICE_PRECONDITION=hive-metastore:9083
+      - HIVE_CORE_CONF_hive_metastore_uris=thrift://hive-metastore:9083
 
   redis:
     image: redis:alpine
     container_name: redis
+    hostname: redis
+    restart: unless-stopped
+    networks:
+      - jee-net
     ports:
       - "6379:6379"
 
   superset:
     image: apache/superset:latest
     container_name: superset
+    hostname: superset
+    restart: unless-stopped
+    networks:
+      - jee-net
+    depends_on:
+      - redis
     ports:
       - "8088:8088"
     environment:
-      SUPERSET_SECRET_KEY: super-secret-key
-
-volumes:
-  namenode_data:
-  datanode_data:
+      - SUPERSET_SECRET_KEY=super-secret-key

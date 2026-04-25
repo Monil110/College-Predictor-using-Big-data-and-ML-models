@@ -14,17 +14,18 @@ Because legacy CSV dumps span millions of fractional iterations across historica
 - **`spark/features.py`, `spark/neet_features.py` & `spark/kcet_features.py`**: Executes complex cross-dimensional Spark groupings aggregating exactly what elements constitute predictive bounds — defining `{Institute, Course, Category, Quota...}` against aggregated functions to lock in actual historic endpoints (like `closing_rank` thresholds).
 
 ### 2. Machine Learning Pipeline `(/ML)`
-Instead of blindly predicting the next rank, we algorithmically derive competitive boundaries utilizing non-linear mathematical boundaries dynamically mapped against heavy categorical architectures.
-- **`ML/jee/`, `ML/neet/`, `ML/kcet/`**: Extracts structured Parquets iteratively. Leverages **Optuna** to perform Bayesian Optimization testing thousands of parameters against 5-fold iterations. While JEE and NEET handle relationships across generalized distributions via XGBoost, KCET leverages **CatBoost** explicitly to safely extrapolate its heavy class assignments.
-- Logs constraints natively leveraging `np.log1p` on target elements (`closing_rank`) preventing outlier variants (obscure college jumps) from dramatically burning localized weights natively. Evaluates RMSE and reliably writes `model.pkl` and associative structural dependencies `encoders.pkl` uniquely down cleanly into `/models`.
+Instead of blindly predicting the next closing rank, we calculate statistical **eligibility probabilities** dynamically mapped against dense categorical parameters.
+- **`ML/jee/`, `ML/neet/`, `ML/kcet/`**: Extracts structured Parquets interactively. The heavily categorized architectures rely purely on highly optimized **CatBoost (Classifiers and Regressors)** securely extrapolating boundaries dynamically across massive class assignments.
+- **Probabilistic Targeting**: The JEE pipeline natively generates heavily randomized synthetic negative samplings spanning outside legitimate bounds—allowing `CatBoostClassifier` instances to return a clean mathematical probability factor dynamically validating student eligibility natively.
+- Evaluates AUC and RMSE accurately, automatically tracking and injecting `.cbm` models and associative targets directly into the `/models` directory natively.
 
 ### 3. Unified API & Redis Caching `(/backend)`
 We utilize a monolithic unified microservice to intercept queries intelligently.
 - **`backend/main.py`**: Serves as the FastAPI controller securely routing the unique domains (`/predict` for JEE, `/predict/neet` for Medical, `/predict/kcet` for State Engineering). It conditionally manages runtime executions dynamically utilizing the corresponding pre-compiled structures securely deployed under `/models`!
 - **How Redis Works Here**: Predictive tree traversals computationally scale. Because millions of users share duplicate exact queries (e.g., `Rank 5000, Category: OBC`), the Fast API endpoint strictly evaluates `key = neet_5000_OBC`. If it hits the deployed Docker **Redis Cluster**, it completely skips XGBoost and dynamically serves JSON data directly bound safely inside nanoseconds.
-- **Inference Algorithms**: Defines precisely where you map safely:
-  - **Safe**: `Projected Cutoff > Candidate Rank`
-  - **Likely**: `Projected Cutoff > (Candidate Rank - 1500)`
+- **Inference Algorithms**: Determines the exact bounds of a valid admission securely using domain-specific metrics.
+  - **Classifiers (JEE)**: Groups dynamically via Probability Thresholds (`Safe`: likelihood >= 70%, `Likely`: likelihood >= 40%).
+  - **Regressors (NEET / KCET)**: Maps natively against dynamic rank gaps (e.g., `Predicted Rank > Candidate Rank - 1500`).
 
 ### 4. Interactive Frontend Application `(/frontend)`
 A beautifully responsive React Glassmorphism interface.
