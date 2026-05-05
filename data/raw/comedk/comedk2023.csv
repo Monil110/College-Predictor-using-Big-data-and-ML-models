@@ -1,0 +1,757 @@
+College Code,College Name,Seat Category,Branch Code,Branch Name,Cutoff Rank
+E001,Acharya Institute of Technology,GM,AE,Aeronautical Engineering,63649
+E001,Acharya Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,27873
+E001,Acharya Institute of Technology,GM,BT,Biotechnology,43325
+E001,Acharya Institute of Technology,GM,CD,Computer Science & Engineering (Data Science),24270
+E001,Acharya Institute of Technology,GM,CS,Computer Science & Engineering,20937
+E001,Acharya Institute of Technology,GM,CV,Civil Engineering,36369
+E001,Acharya Institute of Technology,GM,EC,Electronics & Communication Engineering,41637
+E001,Acharya Institute of Technology,GM,EE,Electrical & Electronics Engineering,48068
+E001,Acharya Institute of Technology,GM,IS,Information Science & Engineering,27122
+E001,Acharya Institute of Technology,GM,ME,Mechanical Engineering,55791
+E001,Acharya Institute of Technology,GM,MT,Mechatronics Engineering,39904
+E001,Acharya Institute of Technology,KKR,AI,Artificial Intelligence & Machine Learning,42006
+E001,Acharya Institute of Technology,KKR,CS,Computer Science & Engineering,41733
+E001,Acharya Institute of Technology,KKR,EC,Electronics & Communication Engineering,68247
+E001,Acharya Institute of Technology,KKR,IS,Information Science & Engineering,51530
+E003,ACS College of Engineering,GM,AE,Aeronautical Engineering,54096
+E003,ACS College of Engineering,GM,CD,Computer Science & Engineering (Data Science),74630
+E003,ACS College of Engineering,GM,CS,Computer Science & Engineering,71353
+E003,ACS College of Engineering,GM,CSI,Computer Science & Engineering (IOT),48627
+E003,ACS College of Engineering,GM,CY,Computer Science & Engineering (Cyber Security),75197
+E004,Adichunchanagiri Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,38997
+E004,Adichunchanagiri Institute of Technology,GM,CD,Computer Science & Engineering (Data Science),67889
+E004,Adichunchanagiri Institute of Technology,GM,CS,Computer Science & Engineering,73700
+E004,Adichunchanagiri Institute of Technology,GM,IS,Information Science & Engineering,76345
+E005,Akash Institute Of Engineering & Technology,GM,CS,Computer Science & Engineering,19761
+E006,Alva's Institute of Engineering and Technology,GM,CS,Computer Science & Engineering,60696
+E006,Alva's Institute of Engineering and Technology,GM,CSI,Computer Science & Engineering (IOT),69037
+E007,A M C Engineering College,GM,AE,Aeronautical Engineering,59057
+E007,A M C Engineering College,GM,AI,Artificial Intelligence & Machine Learning,55365
+E007,A M C Engineering College,GM,CD,Computer Science & Engineering (Data Science),68681
+E007,A M C Engineering College,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),75956
+E007,A M C Engineering College,GM,CS,Computer Science & Engineering,50066
+E007,A M C Engineering College,GM,EC,Electronics & Communication Engineering,74561
+E007,A M C Engineering College,GM,IS,Information Science & Engineering,76934
+E007,A M C Engineering College,GM,ME,Mechanical Engineering,71936
+E007,A M C Engineering College,KKR,AI,Artificial Intelligence & Machine Learning,68989
+E007,A M C Engineering College,KKR,CD,Computer Science & Engineering (Data Science),62914
+E007,A M C Engineering College,KKR,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),50230
+E007,A M C Engineering College,KKR,CS,Computer Science & Engineering,73800
+E009,Angadi Institute of Technology and Management,GM,CS,Computer Science & Engineering,53995
+E011,APS College of Engineering,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),57506
+E011,APS College of Engineering,GM,CS,Computer Science & Engineering,37527
+E011,APS College of Engineering,GM,CY,Computer Science & Engineering (Cyber Security),59477
+E011,APS College of Engineering,GM,IS,Information Science & Engineering,54098
+E012,Atria Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,42289
+E012,Atria Institute of Technology,GM,CD,Computer Science & Engineering (Data Science),37947
+E012,Atria Institute of Technology,GM,CG,Computer Science & Design,77098
+E012,Atria Institute of Technology,GM,CS,Computer Science & Engineering,33565
+E012,Atria Institute of Technology,GM,EC,Electronics & Communication Engineering,71245
+E012,Atria Institute of Technology,GM,IS,Information Science & Engineering,54758
+E012,Atria Institute of Technology,KKR,CS,Computer Science & Engineering,48014
+E012,Atria Institute of Technology,KKR,IS,Information Science & Engineering,73156
+E013,Akshaya Institute of Technology,GM,CS,Computer Science & Engineering,72581
+E015,B.N.M. Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,18768
+E015,B.N.M. Institute of Technology,GM,CS,Computer Science & Engineering,13468
+E015,B.N.M. Institute of Technology,GM,EC,Electronics & Communication Engineering,27483
+E015,B.N.M. Institute of Technology,GM,EE,Electrical & Electronics Engineering,58275
+E015,B.N.M. Institute of Technology,GM,IS,Information Science & Engineering,16054
+E015,B.N.M. Institute of Technology,KKR,AI,Artificial Intelligence & Machine Learning,37141
+E015,B.N.M. Institute of Technology,KKR,CS,Computer Science & Engineering,30131
+E015,B.N.M. Institute of Technology,KKR,EC,Electronics & Communication Engineering,67095
+E015,B.N.M. Institute of Technology,KKR,IS,Information Science & Engineering,31101
+E016,K.L.E Technological University (Formerly known as BVBCET),GM,AM,Automation & Robotics Engineering,47768
+E016,K.L.E Technological University (Formerly known as BVBCET),GM,BT,Biotechnology,41697
+E016,K.L.E Technological University (Formerly known as BVBCET),GM,CA,Computer Science & Engineering (Artificial Intelligence),16522
+E016,K.L.E Technological University (Formerly known as BVBCET),GM,CS,Computer Science & Engineering,13698
+E016,K.L.E Technological University (Formerly known as BVBCET),GM,CV,Civil Engineering,63900
+E016,K.L.E Technological University (Formerly known as BVBCET),GM,EC,Electronics & Communication Engineering,25804
+E016,K.L.E Technological University (Formerly known as BVBCET),GM,EE,Electrical & Electronics Engineering,40085
+E016,K.L.E Technological University (Formerly known as BVBCET),GM,ME,Mechanical Engineering,72169
+E016,K.L.E Technological University (Formerly known as BVBCET),GM,VD,Electronics Engineering (VLSI Design & Technology),33313
+E016,K.L.E Technological University (Formerly known as BVBCET),KKR,AM,Automation & Robotics Engineering,55364
+E016,K.L.E Technological University (Formerly known as BVBCET),KKR,CA,Computer Science & Engineering (Artificial Intelligence),23771
+E016,K.L.E Technological University (Formerly known as BVBCET),KKR,CS,Computer Science & Engineering,20244
+E016,K.L.E Technological University (Formerly known as BVBCET),KKR,EC,Electronics & Communication Engineering,41181
+E016,K.L.E Technological University (Formerly known as BVBCET),KKR,EE,Electrical & Electronics Engineering,52763
+E016,K.L.E Technological University (Formerly known as BVBCET),KKR,VD,Electronics Engineering (VLSI Design & Technology),49224
+E017,Ballari Institute of Technology & Management,GM,AI,Artificial Intelligence & Machine Learning,68882
+E017,Ballari Institute of Technology & Management,GM,CS,Computer Science & Engineering,75616
+E017,Ballari Institute of Technology & Management,GM,EC,Electronics & Communication Engineering,60604
+E017,Ballari Institute of Technology & Management,KKR,AI,Artificial Intelligence & Machine Learning,54662
+E017,Ballari Institute of Technology & Management,KKR,CS,Computer Science & Engineering,69943
+E018,Bangalore College of Engineering & Technology,GM,AI,Artificial Intelligence & Machine Learning,67530
+E018,Bangalore College of Engineering & Technology,GM,CS,Computer Science & Engineering,45561
+E018,Bangalore College of Engineering & Technology,GM,EC,Electronics & Communication Engineering,40818
+E018,Bangalore College of Engineering & Technology,GM,EE,Electrical & Electronics Engineering,34877
+E018,Bangalore College of Engineering & Technology,GM,IS,Information Science & Engineering,64020
+E019,Bangalore Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,7544
+E019,Bangalore Institute of Technology,GM,CD,Computer Science & Engineering (Data Science),6552
+E019,Bangalore Institute of Technology,GM,CS,Computer Science & Engineering,5790
+E019,Bangalore Institute of Technology,GM,CV,Civil Engineering,75937
+E019,Bangalore Institute of Technology,GM,EC,Electronics & Communication Engineering,13399
+E019,Bangalore Institute of Technology,GM,EE,Electrical & Electronics Engineering,22677
+E019,Bangalore Institute of Technology,GM,EI,Electronics & Instrumentation Engineering,26935
+E019,Bangalore Institute of Technology,GM,ET,Electronics & Telecommunicatio n Engineering,20645
+E019,Bangalore Institute of Technology,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),7711
+E019,Bangalore Institute of Technology,GM,IS,Information Science & Engineering,8584
+E019,Bangalore Institute of Technology,GM,ME,Mechanical Engineering,72312
+E019,Bangalore Institute of Technology,GM,RI,Robotics & Artificial Intelligence,10276
+E019,Bangalore Institute of Technology,GM,VD,Electronics Engineering (VLSI Design & Technology),24905
+E019,Bangalore Institute of Technology,KKR,AI,Artificial Intelligence & Machine Learning,21302
+E019,Bangalore Institute of Technology,KKR,CD,Computer Science & Engineering (Data Science),23570
+E019,Bangalore Institute of Technology,KKR,CS,Computer Science & Engineering,16470
+E019,Bangalore Institute of Technology,KKR,EC,Electronics & Communication Engineering,37337
+E019,Bangalore Institute of Technology,KKR,EI,Electronics & Instrumentation Engineering,63562
+E019,Bangalore Institute of Technology,KKR,ET,Electronics & Telecommunicatio n Engineering,39957
+E019,Bangalore Institute of Technology,KKR,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),29202
+E019,Bangalore Institute of Technology,KKR,IS,Information Science & Engineering,22630
+E019,Bangalore Institute of Technology,KKR,RI,Robotics & Artificial Intelligence,35580
+E020,Bangalore Technological Institute,GM,CE,Computer Engineering,63850
+E020,Bangalore Technological Institute,GM,CS,Computer Science & Engineering,54897
+E020,Bangalore Technological Institute,GM,EC,Electronics & Communication Engineering,70412
+E021,Bapuji Institute of Engineering & Technology,GM,AI,Artificial Intelligence & Machine Learning,71042
+E021,Bapuji Institute of Engineering & Technology,GM,CB,Computer Science & Business Systems,66142
+E021,Bapuji Institute of Engineering & Technology,GM,CD,Computer Science & Engineering (Data Science),68933
+E021,Bapuji Institute of Engineering & Technology,GM,CG,Computer Science & Design,69866
+E021,Bapuji Institute of Engineering & Technology,GM,CS,Computer Science & Engineering,43225
+E021,Bapuji Institute of Engineering & Technology,GM,EC,Electronics & Communication Engineering,74189
+E021,Bapuji Institute of Engineering & Technology,GM,EE,Electrical & Electronics Engineering,69053
+E021,Bapuji Institute of Engineering & Technology,GM,IS,Information Science & Engineering,76228
+E021,Bapuji Institute of Engineering & Technology,KKR,AI,Artificial Intelligence & Machine Learning,56722
+E021,Bapuji Institute of Engineering & Technology,KKR,CS,Computer Science & Engineering,54138
+E021,Bapuji Institute of Engineering & Technology,KKR,EC,Electronics & Communication Engineering,76630
+E021,Bapuji Institute of Engineering & Technology,KKR,IS,Information Science & Engineering,45528
+E024,Basaveshwar Engineering College,GM,AI,Artificial Intelligence & Machine Learning,76235
+E024,Basaveshwar Engineering College,GM,CS,Computer Science & Engineering,39661
+E024,Basaveshwar Engineering College,GM,EC,Electronics & Communication Engineering,66757
+E024,Basaveshwar Engineering College,GM,IS,Information Science & Engineering,71140
+E024,Basaveshwar Engineering College,KKR,CS,Computer Science & Engineering,68329
+E024,Basaveshwar Engineering College,KKR,IS,Information Science & Engineering,49686
+E026,"B L D E A's V.P. Dr. P G Halakatti College of Engg &
+Technology",GM,CD,Computer Science & Engineering (Data Science),68512
+E026,"B L D E A's V.P. Dr. P G Halakatti College of Engg &
+Technology",GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),49543
+E026,"B L D E A's V.P. Dr. P G Halakatti College of Engg &
+Technology",GM,CS,Computer Science & Engineering,75598
+E026,"B L D E A's V.P. Dr. P G Halakatti College of Engg &
+Technology",GM,EC,Electronics & Communication Engineering,71352
+E026,"B L D E A's V.P. Dr. P G Halakatti College of Engg &
+Technology",KKR,CS,Computer Science & Engineering,65707
+E027,B M S College of Engineering,GM,AD,Artificial Intelligence & Data Science,2451
+E027,B M S College of Engineering,GM,AI,Artificial Intelligence & Machine Learning,2713
+E027,B M S College of Engineering,GM,AS,Aerospace Engineering,9906
+E027,B M S College of Engineering,GM,BT,Biotechnology,21385
+E027,B M S College of Engineering,GM,CB,Computer Science & Business Systems,2375
+E027,B M S College of Engineering,GM,CD,Computer Science & Engineering (Data Science),1562
+E027,B M S College of Engineering,GM,CH,Chemical Engineering,25950
+E027,B M S College of Engineering,GM,CS,Computer Science & Engineering,1317
+E027,B M S College of Engineering,GM,CV,Civil Engineering,30929
+E027,B M S College of Engineering,GM,EC,Electronics & Communication Engineering,3580
+E027,B M S College of Engineering,GM,EI,Electronics & Instrumentation Engineering,6436
+E027,B M S College of Engineering,GM,ET,Electronics & Telecommunicatio n Engineering,5172
+E027,B M S College of Engineering,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),1964
+E027,B M S College of Engineering,GM,IS,Information Science & Engineering,2217
+E027,B M S College of Engineering,GM,MD,Medical Electronics Engineering,31872
+E027,B M S College of Engineering,GM,ME,Mechanical Engineering,12810
+E027,B M S College of Engineering,KKR,AD,Artificial Intelligence & Data Science,6942
+E027,B M S College of Engineering,KKR,AI,Artificial Intelligence & Machine Learning,7004
+E027,B M S College of Engineering,KKR,AS,Aerospace Engineering,46892
+E027,B M S College of Engineering,KKR,BT,Biotechnology,73252
+E027,B M S College of Engineering,KKR,CB,Computer Science & Business Systems,8467
+E027,B M S College of Engineering,KKR,CS,Computer Science & Engineering,2761
+E027,B M S College of Engineering,KKR,EC,Electronics & Communication Engineering,7567
+E027,B M S College of Engineering,KKR,EI,Electronics & Instrumentation Engineering,26455
+E027,B M S College of Engineering,KKR,ET,Electronics & Telecommunicatio n Engineering,17762
+E027,B M S College of Engineering,KKR,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),6694
+E027,B M S College of Engineering,KKR,IS,Information Science & Engineering,4779
+E027,B M S College of Engineering,KKR,MD,Medical Electronics Engineering,36925
+E027,B M S College of Engineering,KKR,ME,Mechanical Engineering,62801
+E028,BMS Institute of Technology & Management,GM,AI,Artificial Intelligence & Machine Learning,6974
+E028,BMS Institute of Technology & Management,GM,CB,Computer Science & Business Systems,5903
+E028,BMS Institute of Technology & Management,GM,CS,Computer Science & Engineering,4365
+E028,BMS Institute of Technology & Management,GM,CV,Civil Engineering,51536
+E028,BMS Institute of Technology & Management,GM,EC,Electronics & Communication Engineering,9898
+E028,BMS Institute of Technology & Management,GM,EE,Electrical & Electronics Engineering,19468
+E028,BMS Institute of Technology & Management,GM,ET,Electronics & Telecommunicatio n Engineering,16533
+E028,BMS Institute of Technology & Management,GM,IS,Information Science & Engineering,6373
+E028,BMS Institute of Technology & Management,GM,ME,Mechanical Engineering,43636
+E028,BMS Institute of Technology & Management,KKR,AI,Artificial Intelligence & Machine Learning,25059
+E028,BMS Institute of Technology & Management,KKR,CB,Computer Science & Business Systems,22699
+E028,BMS Institute of Technology & Management,KKR,CS,Computer Science & Engineering,12614
+E028,BMS Institute of Technology & Management,KKR,EC,Electronics & Communication Engineering,35756
+E028,BMS Institute of Technology & Management,KKR,IS,Information Science & Engineering,19917
+E030,Brindavan College of Engineering,GM,AI,Artificial Intelligence & Machine Learning,29529
+E030,Brindavan College of Engineering,GM,CS,Computer Science & Engineering,74209
+E032,CMR Institute of Technolog,GM,AD,Artificial Intelligence & Data Science,18545
+E032,CMR Institute of Technolog,GM,AI,Artificial Intelligence & Machine Learning,18417
+E032,CMR Institute of Technolog,GM,CD,Computer Science & Engineering (Data Science),12986
+E032,CMR Institute of Technolog,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),12623
+E032,CMR Institute of Technolog,GM,CS,Computer Science & Engineering,11123
+E032,CMR Institute of Technolog,GM,EC,Electronics & Communication Engineering,25978
+E032,CMR Institute of Technolog,GM,IS,Information Science & Engineering,16165
+E032,CMR Institute of Technolog,KKR,AD,Artificial Intelligence & Data Science,51322
+E032,CMR Institute of Technolog,KKR,AI,Artificial Intelligence & Machine Learning,41829
+E032,CMR Institute of Technolog,KKR,CD,Computer Science & Engineering (Data Science),38897
+E032,CMR Institute of Technolog,KKR,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),25576
+E032,CMR Institute of Technolog,KKR,CS,Computer Science & Engineering,32069
+E032,CMR Institute of Technolog,KKR,EC,Electronics & Communication Engineering,69800
+E032,CMR Institute of Technolog,KKR,IS,Information Science & Engineering,43897
+E033,Cambridge Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,29512
+E033,Cambridge Institute of Technology,GM,CS,Computer Science & Engineering,20666
+E033,Cambridge Institute of Technology,GM,EC,Electronics & Communication Engineering,57104
+E033,Cambridge Institute of Technology,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),30933
+E033,Cambridge Institute of Technology,GM,IS,Information Science & Engineering,26663
+E033,Cambridge Institute of Technology,KKR,CS,Computer Science & Engineering,48202
+E033,Cambridge Institute of Technology,KKR,IS,Information Science & Engineering,67463
+E035,Channabasaveshwara Institute of Technology,GM,AD,Artificial Intelligence & Data Science,72948
+E035,Channabasaveshwara Institute of Technology,GM,CS,Computer Science & Engineering,73264
+E035,Channabasaveshwara Institute of Technology,GM,EC,Electronics & Communication Engineering,47867
+E035,Channabasaveshwara Institute of Technology,GM,IS,Information Science & Engineering,64342
+E037,City Engineering College,GM,CS,Computer Science & Engineering,57451
+E038,Coorg Institute of Technology,GM,AD,Artificial Intelligence & Data Science,46093
+E038,Coorg Institute of Technology,GM,CS,Computer Science & Engineering,42429
+E039,Dayananda Sagar Academy of Technology & Management,GM,AI,Artificial Intelligence & Machine Learning,24069
+E039,Dayananda Sagar Academy of Technology & Management,GM,CA,Computer Science & Engineering (Artificial Intelligence),21795
+E039,Dayananda Sagar Academy of Technology & Management,GM,CD,Computer Science & Engineering (Data Science),22827
+E039,Dayananda Sagar Academy of Technology & Management,GM,CG,Computer Science & Design,29596
+E039,Dayananda Sagar Academy of Technology & Management,GM,CS,Computer Science & Engineering,19056
+E039,Dayananda Sagar Academy of Technology & Management,GM,CY,Computer Science & Engineering (Cyber Security),26402
+E039,Dayananda Sagar Academy of Technology & Management,GM,EC,Electronics & Communication Engineering,36761
+E039,Dayananda Sagar Academy of Technology & Management,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),28260
+E039,Dayananda Sagar Academy of Technology & Management,GM,IS,Information Science & Engineering,25926
+E039,Dayananda Sagar Academy of Technology & Management,KKR,AI,Artificial Intelligence & Machine Learning,34664
+E039,Dayananda Sagar Academy of Technology & Management,KKR,CA,Computer Science & Engineering (Artificial Intelligence),24320
+E039,Dayananda Sagar Academy of Technology & Management,KKR,CD,Computer Science & Engineering (Data Science),40959
+E039,Dayananda Sagar Academy of Technology & Management,KKR,CG,Computer Science & Design,30907
+E039,Dayananda Sagar Academy of Technology & Management,KKR,CS,Computer Science & Engineering,27523
+E039,Dayananda Sagar Academy of Technology & Management,KKR,CY,Computer Science & Engineering (Cyber Security),47068
+E039,Dayananda Sagar Academy of Technology & Management,KKR,EC,Electronics & Communication Engineering,45124
+E039,Dayananda Sagar Academy of Technology & Management,KKR,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),55658
+E039,Dayananda Sagar Academy of Technology & Management,KKR,IS,Information Science & Engineering,42035
+E040,Dayananda Sagar College of Engineering,GM,AE,Aeronautical Engineering,26369
+E040,Dayananda Sagar College of Engineering,GM,AI,Artificial Intelligence & Machine Learning,4405
+E040,Dayananda Sagar College of Engineering,GM,AU,Automobile Engineering,47553
+E040,Dayananda Sagar College of Engineering,GM,BT,Biotechnology,46826
+E040,Dayananda Sagar College of Engineering,GM,CB,Computer Science & Business Systems,4909
+E040,Dayananda Sagar College of Engineering,GM,CD,Computer Science & Engineering (Data Science),3620
+E040,Dayananda Sagar College of Engineering,GM,CG,Computer Science & Design,5055
+E040,Dayananda Sagar College of Engineering,GM,CH,Chemical Engineering,41727
+E040,Dayananda Sagar College of Engineering,GM,CS,Computer Science & Engineering,3272
+E040,Dayananda Sagar College of Engineering,GM,CV,Civil Engineering,52247
+E040,Dayananda Sagar College of Engineering,GM,CY,Computer Science & Engineering (Cyber Security),4212
+E040,Dayananda Sagar College of Engineering,GM,EC,Electronics & Communication Engineering,8701
+E040,Dayananda Sagar College of Engineering,GM,EE,Electrical & Electronics Engineering,19099
+E040,Dayananda Sagar College of Engineering,GM,EI,Electronics & Instrumentation Engineering,20223
+E040,Dayananda Sagar College of Engineering,GM,ET,Electronics & Telecommunicatio n Engineering,14202
+E040,Dayananda Sagar College of Engineering,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),4666
+E040,Dayananda Sagar College of Engineering,GM,IS,Information Science & Engineering,4590
+E040,Dayananda Sagar College of Engineering,GM,MD,Medical Electronics Engineering,48505
+E040,Dayananda Sagar College of Engineering,GM,ME,Mechanical Engineering,37173
+E040,Dayananda Sagar College of Engineering,GM,RI,Robotics & Artificial Intelligence,6269
+E040,Dayananda Sagar College of Engineering,KKR,AE,Aeronautical Engineering,45702
+E040,Dayananda Sagar College of Engineering,KKR,AI,Artificial Intelligence & Machine Learning,11683
+E040,Dayananda Sagar College of Engineering,KKR,CB,Computer Science & Business Systems,21650
+E040,Dayananda Sagar College of Engineering,KKR,CD,Computer Science & Engineering (Data Science),11377
+E040,Dayananda Sagar College of Engineering,KKR,CG,Computer Science & Design,26885
+E040,Dayananda Sagar College of Engineering,KKR,CS,Computer Science & Engineering,7784
+E040,Dayananda Sagar College of Engineering,KKR,CY,Computer Science & Engineering (Cyber Security),12111
+E040,Dayananda Sagar College of Engineering,KKR,EC,Electronics & Communication Engineering,18110
+E040,Dayananda Sagar College of Engineering,KKR,EE,Electrical & Electronics Engineering,55920
+E040,Dayananda Sagar College of Engineering,KKR,ET,Electronics & Telecommunicatio n Engineering,47818
+E040,Dayananda Sagar College of Engineering,KKR,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),18670
+E040,Dayananda Sagar College of Engineering,KKR,IS,Information Science & Engineering,9997
+E040,Dayananda Sagar College of Engineering,KKR,RI,Robotics & Artificial Intelligence,37510
+E041,Don Bosco Institute of Technology,GM,AD,Artificial Intelligence & Data Science,73296
+E041,Don Bosco Institute of Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),64419
+E041,Don Bosco Institute of Technology,GM,CS,Computer Science & Engineering,54090
+E041,Don Bosco Institute of Technology,GM,EC,Electronics & Communication Engineering,74096
+E041,Don Bosco Institute of Technology,GM,IS,Information Science & Engineering,76142
+E041,Don Bosco Institute of Technology,KKR,CS,Computer Science & Engineering,69611
+E042,Dr. Ambedkar Institute of Technology,GM,AE,Aeronautical Engineering,24689
+E042,Dr. Ambedkar Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,23335
+E042,Dr. Ambedkar Institute of Technology,GM,CB,Computer Science & Business Systems,23940
+E042,Dr. Ambedkar Institute of Technology,GM,CS,Computer Science & Engineering,18065
+E042,Dr. Ambedkar Institute of Technology,GM,EC,Electronics & Communication Engineering,29544
+E042,Dr. Ambedkar Institute of Technology,GM,IS,Information Science & Engineering,20447
+E042,Dr. Ambedkar Institute of Technology,KKR,AI,Artificial Intelligence & Machine Learning,41486
+E042,Dr. Ambedkar Institute of Technology,KKR,CB,Computer Science & Business Systems,61670
+E042,Dr. Ambedkar Institute of Technology,KKR,CS,Computer Science & Engineering,41069
+E042,Dr. Ambedkar Institute of Technology,KKR,EC,Electronics & Communication Engineering,68326
+E042,Dr. Ambedkar Institute of Technology,KKR,IS,Information Science & Engineering,41110
+E043,"Yenepoya Institute of Technology  (formerly known as Dr. M
+V Shetty Institute of Technology)",GM,CS,Computer Science & Engineering,37359
+E043,"Yenepoya Institute of Technology  (formerly known as Dr. M
+V Shetty Institute of Technology)",GM,IS,Information Science & Engineering,38259
+E046,East Point College of Engineering & Technology,GM,AD,Artificial Intelligence & Data Science,56575
+E046,East Point College of Engineering & Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),66312
+E046,East Point College of Engineering & Technology,GM,CS,Computer Science & Engineering,77173
+E046,East Point College of Engineering & Technology,GM,IS,Information Science & Engineering,59549
+E048,East West Institute of Technology,GM,AD,Artificial Intelligence & Data Science,54791
+E048,East West Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,55017
+E048,East West Institute of Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),58486
+E048,East West Institute of Technology,GM,CS,Computer Science & Engineering,74818
+E048,East West Institute of Technology,GM,EC,Electronics & Communication Engineering,51319
+E048,East West Institute of Technology,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),51437
+E048,East West Institute of Technology,GM,IS,Information Science & Engineering,69785
+E049,Garden City University,GM,CD,Computer Science & Engineering (Data Science),38654
+E049,Garden City University,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),46431
+E049,Garden City University,GM,CY,Computer Science & Engineering (Cyber Security),57440
+E050,Global Academy of Technology,GM,AD,Artificial Intelligence & Data Science,33366
+E050,Global Academy of Technology,GM,AE,Aeronautical Engineering,42151
+E050,Global Academy of Technology,GM,AI,Artificial Intelligence & Machine Learning,36561
+E050,Global Academy of Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),32606
+E050,Global Academy of Technology,GM,CS,Computer Science & Engineering,26982
+E050,Global Academy of Technology,GM,EC,Electronics & Communication Engineering,74628
+E050,Global Academy of Technology,GM,IS,Information Science & Engineering,34675
+E050,Global Academy of Technology,KKR,AD,Artificial Intelligence & Data Science,41687
+E050,Global Academy of Technology,KKR,AI,Artificial Intelligence & Machine Learning,45873
+E050,Global Academy of Technology,KKR,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),38420
+E050,Global Academy of Technology,KKR,CS,Computer Science & Engineering,45107
+E050,Global Academy of Technology,KKR,EC,Electronics & Communication Engineering,76768
+E050,Global Academy of Technology,KKR,IS,Information Science & Engineering,54064
+E051,G M Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,54212
+E051,G M Institute of Technology,GM,CS,Computer Science & Engineering,75825
+E051,G M Institute of Technology,GM,EC,Electronics & Communication Engineering,74440
+E051,G M Institute of Technology,GM,IS,Information Science & Engineering,49899
+E051,G M Institute of Technology,KKR,CS,Computer Science & Engineering,73128
+E053,Gopalan College of Engineering & Management,GM,CS,Computer Science & Engineering,70044
+E053,Gopalan College of Engineering & Management,GM,IS,Information Science & Engineering,44704
+E053,Gopalan College of Engineering & Management,GM,ME,Mechanical Engineering,31817
+E055,G.S.S.S. Institute of Engineering & Technology for Women,GM,AD,Artificial Intelligence & Data Science,72047
+E055,G.S.S.S. Institute of Engineering & Technology for Women,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),43964
+E055,G.S.S.S. Institute of Engineering & Technology for Women,GM,CS,Computer Science & Engineering,32546
+E055,G.S.S.S. Institute of Engineering & Technology for Women,GM,EC,Electronics & Communication Engineering,74300
+E055,G.S.S.S. Institute of Engineering & Technology for Women,GM,IS,Information Science & Engineering,43507
+E055,G.S.S.S. Institute of Engineering & Technology for Women,KKR,CS,Computer Science & Engineering,46862
+E055,G.S.S.S. Institute of Engineering & Technology for Women,KKR,IS,Information Science & Engineering,60452
+E056,H.K.E.Society's P. D.A. College of Engineering,GM,CS,Computer Science & Engineering,76356
+E056,H.K.E.Society's P. D.A. College of Engineering,GM,EE,Electrical & Electronics Engineering,36505
+E056,H.K.E.Society's P. D.A. College of Engineering,GM,IS,Information Science & Engineering,44612
+E056,H.K.E.Society's P. D.A. College of Engineering,KKR,CS,Computer Science & Engineering,75636
+E058,Sri Jayachamarajendra College of Engineering (Constituent College of JSS Science and Technology University),GM,CS,Computer Science & Engineering,3064
+E058,Sri Jayachamarajendra College of Engineering (Constituent College of JSS Science and Technology University),KKR,CS,Computer Science & Engineering,7233
+E059,Jawaharlal Nehru New College Of Engineering (JNNCE),GM,AI,Artificial Intelligence & Machine Learning,70958
+E059,Jawaharlal Nehru New College Of Engineering (JNNCE),GM,CD,Computer Science & Engineering (Data Science),75103
+E059,Jawaharlal Nehru New College Of Engineering (JNNCE),GM,CS,Computer Science & Engineering,40752
+E059,Jawaharlal Nehru New College Of Engineering (JNNCE),GM,EC,Electronics & Communication Engineering,70647
+E059,Jawaharlal Nehru New College Of Engineering (JNNCE),GM,EE,Electrical & Electronics Engineering,73327
+E059,Jawaharlal Nehru New College Of Engineering (JNNCE),GM,IS,Information Science & Engineering,69153
+E059,Jawaharlal Nehru New College Of Engineering (JNNCE),GM,RI,Robotics & Artificial Intelligence,61856
+E059,Jawaharlal Nehru New College Of Engineering (JNNCE),KKR,AI,Artificial Intelligence & Machine Learning,62546
+E060,J.S.S. Academy of Technical Education,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),20331
+E060,J.S.S. Academy of Technical Education,GM,CS,Computer Science & Engineering,17275
+E060,J.S.S. Academy of Technical Education,GM,EC,Electronics & Communication Engineering,30245
+E060,J.S.S. Academy of Technical Education,GM,EI,Electronics & Instrumentation Engineering,49796
+E060,J.S.S. Academy of Technical Education,GM,IS,Information Science & Engineering,22244
+E060,J.S.S. Academy of Technical Education,GM,RA,Robotics & Automation,38428
+E060,J.S.S. Academy of Technical Education,KKR,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),33779
+E060,J.S.S. Academy of Technical Education,KKR,CS,Computer Science & Engineering,30605
+E060,J.S.S. Academy of Technical Education,KKR,EI,Electronics & Instrumentation Engineering,38115
+E060,J.S.S. Academy of Technical Education,KKR,IS,Information Science & Engineering,46370
+E061,JSS Science & Technology University,GM,BT,Biotechnology,69433
+E061,JSS Science & Technology University,GM,CV,Civil Engineering,36204
+E061,JSS Science & Technology University,GM,ME,Mechanical Engineering,70186
+E062,Jain College of Engineering,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),63213
+E062,Jain College of Engineering,GM,CS,Computer Science & Engineering,58001
+E062,Jain College of Engineering,GM,EC,Electronics & Communication Engineering,71628
+E063,Jnana Vikas Institute of Technology,GM,CS,Computer Science & Engineering,55008
+E064,Jain College of Engineering and Research,GM,EC,Electronics & Communication Engineering,45218
+E065,"KLE Technological University Hubballi, Belagavi Campus. (Formerly called as KLE Dr. M.S.sheshgiri college of
+Engineering and Technology, Belagavi.)",GM,CA,Computer Science & Engineering (Artificial Intelligence),36018
+E065,"KLE Technological University Hubballi, Belagavi Campus. (Formerly called as KLE Dr. M.S.sheshgiri college of
+Engineering and Technology, Belagavi.)",GM,CS,Computer Science & Engineering,32776
+E065,"KLE Technological University Hubballi, Belagavi Campus. (Formerly called as KLE Dr. M.S.sheshgiri college of
+Engineering and Technology, Belagavi.)",GM,EC,Electronics & Communication Engineering,48161
+E065,"KLE Technological University Hubballi, Belagavi Campus. (Formerly called as KLE Dr. M.S.sheshgiri college of
+Engineering and Technology, Belagavi.)",GM,EE,Electrical & Electronics Engineering,65686
+E065,"KLE Technological University Hubballi, Belagavi Campus. (Formerly called as KLE Dr. M.S.sheshgiri college of
+Engineering and Technology, Belagavi.)",KKR,CA,Computer Science & Engineering (Artificial Intelligence),61996
+E065,"KLE Technological University Hubballi, Belagavi Campus. (Formerly called as KLE Dr. M.S.sheshgiri college of
+Engineering and Technology, Belagavi.)",KKR,CS,Computer Science & Engineering,59107
+E066,KLE College of Engineering and Technology,GM,AD,Artificial Intelligence & Data Science,67419
+E066,KLE College of Engineering and Technology,GM,CS,Computer Science & Engineering,73628
+E067,K.S. School of Engineering & Management,GM,AD,Artificial Intelligence & Data Science,58579
+E067,K.S. School of Engineering & Management,GM,CS,Computer Science & Engineering,63756
+E068,K S Institute Of Technology,GM,AI,Artificial Intelligence & Machine Learning,72992
+E068,K S Institute Of Technology,GM,CG,Computer Science & Design,69781
+E068,K S Institute Of Technology,GM,CM,Computer & Communication Engineering,64264
+E068,K S Institute Of Technology,GM,CS,Computer Science & Engineering,43912
+E068,K S Institute Of Technology,GM,EC,Electronics & Communication Engineering,61666
+E068,K S Institute Of Technology,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),58865
+E068,K S Institute Of Technology,KKR,CS,Computer Science & Engineering,70978
+E069,K.V.G. College of Engineering,GM,CS,Computer Science & Engineering,58836
+E070,Kalpataru Institute Of Technology,GM,CS,Computer Science & Engineering,56837
+E071,Karavali Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,39312
+E072,K.L.E Society's K.L.E Institute of Technology,GM,CS,Computer Science & Engineering,51246
+E072,K.L.E Society's K.L.E Institute of Technology,GM,EC,Electronics & Communication Engineering,74917
+E072,K.L.E Society's K.L.E Institute of Technology,GM,EE,Electrical & Electronics Engineering,58102
+E072,K.L.E Society's K.L.E Institute of Technology,KKR,CS,Computer Science & Engineering,69155
+E072,K.L.E Society's K.L.E Institute of Technology,KKR,EC,Electronics & Communication Engineering,62470
+E073,KLS Gogte Institute of Technology,GM,AE,Aeronautical Engineering,42980
+E073,KLS Gogte Institute of Technology,GM,CS,Computer Science & Engineering,22693
+E073,KLS Gogte Institute of Technology,GM,CV,Civil Engineering,65377
+E073,KLS Gogte Institute of Technology,GM,EC,Electronics & Communication Engineering,40384
+E073,KLS Gogte Institute of Technology,GM,EE,Electrical & Electronics Engineering,38435
+E073,KLS Gogte Institute of Technology,GM,IS,Information Science & Engineering,30847
+E073,KLS Gogte Institute of Technology,GM,ME,Mechanical Engineering,35714
+E073,KLS Gogte Institute of Technology,KKR,CS,Computer Science & Engineering,47067
+E073,KLS Gogte Institute of Technology,KKR,EC,Electronics & Communication Engineering,58207
+E073,KLS Gogte Institute of Technology,KKR,EE,Electrical & Electronics Engineering,47080
+E073,KLS Gogte Institute of Technology,KKR,IS,Information Science & Engineering,55663
+E074,KLS Vishwanathrao Deshpande Institute of Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),76119
+E074,KLS Vishwanathrao Deshpande Institute of Technology,GM,CS,Computer Science & Engineering,76214
+E076,M.S. Engineering College,GM,CS,Computer Science & Engineering,32058
+E077,M S Ramaiah Institute of Technology,GM,AD,Artificial Intelligence & Data Science,2458
+E077,M S Ramaiah Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,2535
+E077,M S Ramaiah Institute of Technology,GM,BT,Biotechnology,27651
+E077,M S Ramaiah Institute of Technology,GM,CH,Chemical Engineering,27454
+E077,M S Ramaiah Institute of Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),1830
+E077,M S Ramaiah Institute of Technology,GM,CS,Computer Science & Engineering,1358
+E077,M S Ramaiah Institute of Technology,GM,CV,Civil Engineering,29486
+E077,M S Ramaiah Institute of Technology,GM,CY,Computer Science & Engineering (Cyber Security),2159
+E077,M S Ramaiah Institute of Technology,GM,EC,Electronics & Communication Engineering,3530
+E077,M S Ramaiah Institute of Technology,GM,EE,Electrical & Electronics Engineering,5864
+E077,M S Ramaiah Institute of Technology,GM,EI,Electronics & Instrumentation Engineering,6810
+E077,M S Ramaiah Institute of Technology,GM,ET,Electronics & Telecommunicatio n Engineering,5341
+E077,M S Ramaiah Institute of Technology,GM,IM,Industrial Engineering & Management,24423
+E077,M S Ramaiah Institute of Technology,GM,IS,Information Science & Engineering,2242
+E077,M S Ramaiah Institute of Technology,GM,MD,Medical Electronics Engineering,30838
+E077,M S Ramaiah Institute of Technology,GM,ME,Mechanical Engineering,15619
+E077,M S Ramaiah Institute of Technology,KKR,AD,Artificial Intelligence & Data Science,8037
+E077,M S Ramaiah Institute of Technology,KKR,AI,Artificial Intelligence & Machine Learning,7016
+E077,M S Ramaiah Institute of Technology,KKR,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),4989
+E077,M S Ramaiah Institute of Technology,KKR,CS,Computer Science & Engineering,3033
+E077,M S Ramaiah Institute of Technology,KKR,CV,Civil Engineering,61791
+E077,M S Ramaiah Institute of Technology,KKR,CY,Computer Science & Engineering (Cyber Security),5611
+E077,M S Ramaiah Institute of Technology,KKR,EC,Electronics & Communication Engineering,10479
+E077,M S Ramaiah Institute of Technology,KKR,EE,Electrical & Electronics Engineering,36441
+E077,M S Ramaiah Institute of Technology,KKR,EI,Electronics & Instrumentation Engineering,28239
+E077,M S Ramaiah Institute of Technology,KKR,ET,Electronics & Telecommunicatio n Engineering,30308
+E077,M S Ramaiah Institute of Technology,KKR,IM,Industrial Engineering & Management,59812
+E077,M S Ramaiah Institute of Technology,KKR,IS,Information Science & Engineering,4455
+E077,M S Ramaiah Institute of Technology,KKR,ME,Mechanical Engineering,58577
+E078,Maharaja Institute of Technology,GM,CA,Computer Science & Engineering (Artificial Intelligence),74539
+E078,Maharaja Institute of Technology,GM,CB,Computer Science & Business Systems,75081
+E078,Maharaja Institute of Technology,GM,CD,Computer Science & Engineering (Data Science),71198
+E078,Maharaja Institute of Technology,GM,CE,Computer Engineering,59729
+E078,Maharaja Institute of Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),69835
+E078,Maharaja Institute of Technology,GM,CS,Computer Science & Engineering,61792
+E078,Maharaja Institute of Technology,GM,EC,Electronics & Communication Engineering,68215
+E078,Maharaja Institute of Technology,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),76512
+E078,Maharaja Institute of Technology,GM,IS,Information Science & Engineering,76654
+E079,Malnad College of Engineering,GM,CB,Computer Science & Business Systems,68014
+E079,Malnad College of Engineering,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),57606
+E079,Malnad College of Engineering,GM,CS,Computer Science & Engineering,66264
+E079,Malnad College of Engineering,GM,IS,Information Science & Engineering,61136
+E079,Malnad College of Engineering,KKR,CS,Computer Science & Engineering,71556
+E080,Mangalore Institute of Technology and Engineering,GM,AE,Aeronautical Engineering,45565
+E080,Mangalore Institute of Technology and Engineering,GM,AI,Artificial Intelligence & Machine Learning,40102
+E080,Mangalore Institute of Technology and Engineering,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),60718
+E080,Mangalore Institute of Technology and Engineering,GM,CS,Computer Science & Engineering,74286
+E080,Mangalore Institute of Technology and Engineering,GM,EC,Electronics & Communication Engineering,72505
+E080,Mangalore Institute of Technology and Engineering,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),66106
+E080,Mangalore Institute of Technology and Engineering,GM,IS,Information Science & Engineering,68133
+E080,Mangalore Institute of Technology and Engineering,KKR,AI,Artificial Intelligence & Machine Learning,64661
+E082,Maharaja Institute of Technology,GM,AD,Artificial Intelligence & Data Science,45915
+E082,Maharaja Institute of Technology,GM,CS,Computer Science & Engineering,66132
+E084,Nagarjuna College of Engineering & Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),66272
+E084,Nagarjuna College of Engineering & Technology,GM,CS,Computer Science & Engineering,73725
+E084,Nagarjuna College of Engineering & Technology,GM,IS,Information Science & Engineering,65463
+E084,Nagarjuna College of Engineering & Technology,KKR,CS,Computer Science & Engineering,75740
+E085,The National Institute of Engineering - North Campus,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),7724
+E085,The National Institute of Engineering - North Campus,GM,CS,Computer Science & Engineering,6501
+E085,The National Institute of Engineering - North Campus,GM,IS,Information Science & Engineering,8946
+E085,The National Institute of Engineering - North Campus,KKR,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),18468
+E085,The National Institute of Engineering - North Campus,KKR,CS,Computer Science & Engineering,12226
+E085,The National Institute of Engineering - North Campus,KKR,IS,Information Science & Engineering,20051
+E086,Nitte Meenakshi Institute of Technology,GM,AD,Artificial Intelligence & Data Science,10617
+E086,Nitte Meenakshi Institute of Technology,GM,AE,Aeronautical Engineering,65650
+E086,Nitte Meenakshi Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,10128
+E086,Nitte Meenakshi Institute of Technology,GM,CB,Computer Science & Business Systems,9949
+E086,Nitte Meenakshi Institute of Technology,GM,CS,Computer Science & Engineering,7856
+E086,Nitte Meenakshi Institute of Technology,GM,CV,Civil Engineering,46321
+E086,Nitte Meenakshi Institute of Technology,GM,EC,Electronics & Communication Engineering,15919
+E086,Nitte Meenakshi Institute of Technology,GM,EE,Electrical & Electronics Engineering,28824
+E086,Nitte Meenakshi Institute of Technology,GM,IS,Information Science & Engineering,10697
+E086,Nitte Meenakshi Institute of Technology,GM,ME,Mechanical Engineering,67970
+E086,Nitte Meenakshi Institute of Technology,GM,VD,Electronics Engineering (VLSI Design & Technology),29930
+E086,Nitte Meenakshi Institute of Technology,KKR,AD,Artificial Intelligence & Data Science,27265
+E086,Nitte Meenakshi Institute of Technology,KKR,AI,Artificial Intelligence & Machine Learning,18769
+E086,Nitte Meenakshi Institute of Technology,KKR,CB,Computer Science & Business Systems,33615
+E086,Nitte Meenakshi Institute of Technology,KKR,CS,Computer Science & Engineering,19967
+E086,Nitte Meenakshi Institute of Technology,KKR,EC,Electronics & Communication Engineering,43746
+E086,Nitte Meenakshi Institute of Technology,KKR,IS,Information Science & Engineering,23538
+E086,Nitte Meenakshi Institute of Technology,KKR,VD,Electronics Engineering (VLSI Design & Technology),65223
+E089,P. E. S. College of Engineering,GM,CB,Computer Science & Business Systems,31292
+E089,P. E. S. College of Engineering,GM,CD,Computer Science & Engineering (Data Science),27370
+E089,P. E. S. College of Engineering,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),24880
+E089,P. E. S. College of Engineering,GM,CS,Computer Science & Engineering,22378
+E089,P. E. S. College of Engineering,GM,CV,Civil Engineering,66067
+E089,P. E. S. College of Engineering,GM,EC,Electronics & Communication Engineering,39824
+E089,P. E. S. College of Engineering,GM,EE,Electrical & Electronics Engineering,43137
+E089,P. E. S. College of Engineering,GM,IS,Information Science & Engineering,25929
+E089,P. E. S. College of Engineering,KKR,CS,Computer Science & Engineering,33826
+E089,P. E. S. College of Engineering,KKR,IS,Information Science & Engineering,56198
+E090,P E S Institute of Technology & Management,GM,AI,Artificial Intelligence & Machine Learning,44467
+E090,P E S Institute of Technology & Management,GM,CD,Computer Science & Engineering (Data Science),53157
+E090,P E S Institute of Technology & Management,GM,CE,Computer Engineering,48924
+E090,P E S Institute of Technology & Management,GM,CG,Computer Science & Design,71816
+E090,P E S Institute of Technology & Management,GM,CS,Computer Science & Engineering,38847
+E090,P E S Institute of Technology & Management,GM,EC,Electronics & Communication Engineering,73820
+E090,P E S Institute of Technology & Management,GM,IST,Information Science & Technology,63257
+E090,P E S Institute of Technology & Management,KKR,AI,Artificial Intelligence & Machine Learning,42900
+E090,P E S Institute of Technology & Management,KKR,CD,Computer Science & Engineering (Data Science),52676
+E095,R.V. College of Engineering,GM,AI,Artificial Intelligence & Machine Learning,789
+E095,R.V. College of Engineering,GM,AS,Aerospace Engineering,5990
+E095,R.V. College of Engineering,GM,BT,Biotechnology,16564
+E095,R.V. College of Engineering,GM,CD,Computer Science & Engineering (Data Science),531
+E095,R.V. College of Engineering,GM,CH,Chemical Engineering,14115
+E095,R.V. College of Engineering,GM,CS,Computer Science & Engineering,403
+E095,R.V. College of Engineering,GM,CV,Civil Engineering,17203
+E095,R.V. College of Engineering,GM,CY,Computer Science & Engineering (Cyber Security),774
+E095,R.V. College of Engineering,GM,EC,Electronics & Communication Engineering,1333
+E095,R.V. College of Engineering,GM,EE,Electrical & Electronics Engineering,2786
+E095,R.V. College of Engineering,GM,EI,Electronics & Instrumentation Engineering,3243
+E095,R.V. College of Engineering,GM,ET,Electronics & Telecommunicatio n Engineering,2835
+E095,R.V. College of Engineering,GM,IM,Industrial Engineering & Management,14887
+E095,R.V. College of Engineering,GM,IS,Information Science & Engineering,644
+E095,R.V. College of Engineering,GM,ME,Mechanical Engineering,7489
+E095,R.V. College of Engineering,KKR,AI,Artificial Intelligence & Machine Learning,4013
+E095,R.V. College of Engineering,KKR,AS,Aerospace Engineering,20024
+E095,R.V. College of Engineering,KKR,BT,Biotechnology,34665
+E095,R.V. College of Engineering,KKR,CD,Computer Science & Engineering (Data Science),2067
+E095,R.V. College of Engineering,KKR,CS,Computer Science & Engineering,1220
+E095,R.V. College of Engineering,KKR,CV,Civil Engineering,61036
+E095,R.V. College of Engineering,KKR,CY,Computer Science & Engineering (Cyber Security),3719
+E095,R.V. College of Engineering,KKR,EC,Electronics & Communication Engineering,5089
+E095,R.V. College of Engineering,KKR,EE,Electrical & Electronics Engineering,14226
+E095,R.V. College of Engineering,KKR,EI,Electronics & Instrumentation Engineering,17539
+E095,R.V. College of Engineering,KKR,ET,Electronics & Telecommunicatio n Engineering,13352
+E095,R.V. College of Engineering,KKR,IM,Industrial Engineering & Management,49456
+E095,R.V. College of Engineering,KKR,IS,Information Science & Engineering,1380
+E095,R.V. College of Engineering,KKR,ME,Mechanical Engineering,31190
+E097,R.R.Institute of Technology,GM,CS,Computer Science & Engineering,70264
+E099,RajaRajeswari College of Engineering,GM,AI,Artificial Intelligence & Machine Learning,62674
+E099,RajaRajeswari College of Engineering,GM,CS,Computer Science & Engineering,75910
+E099,RajaRajeswari College of Engineering,GM,EC,Electronics & Communication Engineering,72374
+E099,RajaRajeswari College of Engineering,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),54569
+E099,RajaRajeswari College of Engineering,GM,IS,Information Science & Engineering,38702
+E101,Rajiv Gandhi Institute of Technology,GM,CS,Computer Science & Engineering,54501
+E101,Rajiv Gandhi Institute of Technology,GM,EE,Electrical & Electronics Engineering,32808
+E102,Rao Bahadur Y. Mahabaleswarappa Engineering College,GM,CS,Computer Science & Engineering,67415
+E104,RNS Institute of Technology,GM,AD,Artificial Intelligence & Data Science,17310
+E104,RNS Institute of Technology,GM,CD,Computer Science & Engineering (Data Science),17262
+E104,RNS Institute of Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),16926
+E104,RNS Institute of Technology,GM,CS,Computer Science & Engineering,11782
+E104,RNS Institute of Technology,GM,CY,Computer Science & Engineering (Cyber Security),17242
+E104,RNS Institute of Technology,GM,EC,Electronics & Communication Engineering,25823
+E104,RNS Institute of Technology,GM,IS,Information Science & Engineering,16671
+E104,RNS Institute of Technology,KKR,AD,Artificial Intelligence & Data Science,29407
+E104,RNS Institute of Technology,KKR,CD,Computer Science & Engineering (Data Science),28766
+E104,RNS Institute of Technology,KKR,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),33057
+E104,RNS Institute of Technology,KKR,CS,Computer Science & Engineering,22786
+E104,RNS Institute of Technology,KKR,CY,Computer Science & Engineering (Cyber Security),33707
+E104,RNS Institute of Technology,KKR,EC,Electronics & Communication Engineering,46777
+E104,RNS Institute of Technology,KKR,IS,Information Science & Engineering,30419
+E105,Bheemanna Khandre Institute of Technology,GM,CS,Computer Science & Engineering,53962
+E107,S J B Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,31530
+E107,S J B Institute of Technology,GM,CD,Computer Science & Engineering (Data Science),30868
+E107,S J B Institute of Technology,GM,CS,Computer Science & Engineering,25004
+E107,S J B Institute of Technology,GM,EC,Electronics & Communication Engineering,42469
+E107,S J B Institute of Technology,GM,EE,Electrical & Electronics Engineering,59348
+E107,S J B Institute of Technology,GM,IS,Information Science & Engineering,31108
+E107,S J B Institute of Technology,KKR,AI,Artificial Intelligence & Machine Learning,50488
+E107,S J B Institute of Technology,KKR,CD,Computer Science & Engineering (Data Science),44569
+E107,S J B Institute of Technology,KKR,CS,Computer Science & Engineering,43018
+E107,S J B Institute of Technology,KKR,IS,Information Science & Engineering,61780
+E108,SJC Institute of Technology,GM,AD,Artificial Intelligence & Data Science,27276
+E108,SJC Institute of Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),64636
+E108,SJC Institute of Technology,GM,CS,Computer Science & Engineering,73322
+E108,SJC Institute of Technology,GM,EC,Electronics & Communication Engineering,75789
+E108,SJC Institute of Technology,GM,IS,Information Science & Engineering,56880
+E109,S.E.A. College of Engineering & Technology,GM,CS,Computer Science & Engineering,74950
+E110,SSET's S.G. Balekundri Institute of Technology,GM,AD,Artificial Intelligence & Data Science,65850
+E110,SSET's S.G. Balekundri Institute of Technology,GM,CS,Computer Science & Engineering,71547
+E112,Sahyadri College of Engineering & Management,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),75084
+E112,Sahyadri College of Engineering & Management,GM,CS,Computer Science & Engineering,60016
+E112,Sahyadri College of Engineering & Management,GM,EC,Electronics & Communication Engineering,70325
+E112,Sahyadri College of Engineering & Management,GM,IS,Information Science & Engineering,47775
+E112,Sahyadri College of Engineering & Management,KKR,CS,Computer Science & Engineering,53163
+E113,Sai Vidya Institute of Technology,GM,CD,Computer Science & Engineering (Data Science),59278
+E113,Sai Vidya Institute of Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),73757
+E113,Sai Vidya Institute of Technology,GM,CS,Computer Science & Engineering,58912
+E113,Sai Vidya Institute of Technology,GM,EC,Electronics & Communication Engineering,72927
+E113,Sai Vidya Institute of Technology,GM,IS,Information Science & Engineering,66941
+E113,Sai Vidya Institute of Technology,KKR,CS,Computer Science & Engineering,42139
+E114,Sambhram Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,65494
+E114,Sambhram Institute of Technology,GM,CS,Computer Science & Engineering,71011
+E114,Sambhram Institute of Technology,GM,CY,Computer Science & Engineering (Cyber Security),63719
+E116,Sapthagiri College of Engineering,GM,BT,Biotechnology,53666
+E116,Sapthagiri College of Engineering,GM,CS,Computer Science & Engineering,38911
+E116,Sapthagiri College of Engineering,GM,EC,Electronics & Communication Engineering,56939
+E116,Sapthagiri College of Engineering,GM,IS,Information Science & Engineering,68271
+E116,Sapthagiri College of Engineering,KKR,CS,Computer Science & Engineering,43579
+E117,SDM College of Engineering & Technology,GM,AI,Artificial Intelligence & Machine Learning,30604
+E117,SDM College of Engineering & Technology,GM,CH,Chemical Engineering,28293
+E117,SDM College of Engineering & Technology,GM,CS,Computer Science & Engineering,22355
+E117,SDM College of Engineering & Technology,GM,CV,Civil Engineering,54439
+E117,SDM College of Engineering & Technology,GM,EC,Electronics & Communication Engineering,37486
+E117,SDM College of Engineering & Technology,GM,EE,Electrical & Electronics Engineering,57324
+E117,SDM College of Engineering & Technology,GM,IS,Information Science & Engineering,26802
+E117,SDM College of Engineering & Technology,GM,ME,Mechanical Engineering,63661
+E117,SDM College of Engineering & Technology,KKR,AI,Artificial Intelligence & Machine Learning,29145
+E117,SDM College of Engineering & Technology,KKR,CS,Computer Science & Engineering,27226
+E117,SDM College of Engineering & Technology,KKR,EC,Electronics & Communication Engineering,52377
+E117,SDM College of Engineering & Technology,KKR,IS,Information Science & Engineering,30001
+E118,SDM Institute of Technology,GM,CS,Computer Science & Engineering,50129
+E118,SDM Institute of Technology,GM,IS,Information Science & Engineering,22148
+E118,SDM Institute of Technology,KKR,CS,Computer Science & Engineering,39190
+E118,SDM Institute of Technology,KKR,IS,Information Science & Engineering,62895
+E121,Sri SaiRam College of Engineering,GM,AI,Artificial Intelligence & Machine Learning,76338
+E121,Sri SaiRam College of Engineering,GM,CS,Computer Science & Engineering,55236
+E123,"Shri Madhwa Vadiraja Institute of Technology &
+Management",GM,AI,Artificial Intelligence & Machine Learning,56512
+E123,"Shri Madhwa Vadiraja Institute of Technology &
+Management",GM,CS,Computer Science & Engineering,40770
+E124,Shridevi Institute of Engineering & Technology,GM,CS,Computer Science & Engineering,63475
+E125,Siddaganga Institute of Technology,GM,AD,Artificial Intelligence & Data Science,11451
+E125,Siddaganga Institute of Technology,GM,CH,Chemical Engineering,39009
+E125,Siddaganga Institute of Technology,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),10240
+E125,Siddaganga Institute of Technology,GM,CS,Computer Science & Engineering,8336
+E125,Siddaganga Institute of Technology,GM,EC,Electronics & Communication Engineering,16429
+E125,Siddaganga Institute of Technology,GM,EE,Electrical & Electronics Engineering,25093
+E125,Siddaganga Institute of Technology,GM,EIE,Electronics & Instrumentation Engineering (Inst. Technology),26834
+E125,Siddaganga Institute of Technology,GM,ET,Electronics & Telecommunicatio n Engineering,20716
+E125,Siddaganga Institute of Technology,GM,IM,Industrial Engineering & Management,34406
+E125,Siddaganga Institute of Technology,GM,IS,Information Science & Engineering,10883
+E125,Siddaganga Institute of Technology,KKR,AD,Artificial Intelligence & Data Science,28511
+E125,Siddaganga Institute of Technology,KKR,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),23405
+E125,Siddaganga Institute of Technology,KKR,CS,Computer Science & Engineering,17574
+E125,Siddaganga Institute of Technology,KKR,EC,Electronics & Communication Engineering,38727
+E125,Siddaganga Institute of Technology,KKR,IS,Information Science & Engineering,22711
+E126,Sir. M. Visvesvaraya Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,12237
+E126,Sir. M. Visvesvaraya Institute of Technology,GM,BT,Biotechnology,56047
+E126,Sir. M. Visvesvaraya Institute of Technology,GM,CS,Computer Science & Engineering,9927
+E126,Sir. M. Visvesvaraya Institute of Technology,GM,CSI,Computer Science & Engineering (IOT),11723
+E126,Sir. M. Visvesvaraya Institute of Technology,GM,CV,Civil Engineering,74666
+E126,Sir. M. Visvesvaraya Institute of Technology,GM,EC,Electronics & Communication Engineering,19623
+E126,Sir. M. Visvesvaraya Institute of Technology,GM,EE,Electrical & Electronics Engineering,40858
+E126,Sir. M. Visvesvaraya Institute of Technology,GM,ET,Electronics & Telecommunicatio n Engineering,28008
+E126,Sir. M. Visvesvaraya Institute of Technology,GM,IS,Information Science & Engineering,12107
+E126,Sir. M. Visvesvaraya Institute of Technology,GM,ME,Mechanical Engineering,63415
+E126,Sir. M. Visvesvaraya Institute of Technology,KKR,AI,Artificial Intelligence & Machine Learning,34337
+E126,Sir. M. Visvesvaraya Institute of Technology,KKR,CS,Computer Science & Engineering,31889
+E126,Sir. M. Visvesvaraya Institute of Technology,KKR,CSI,Computer Science & Engineering (IOT),37948
+E126,Sir. M. Visvesvaraya Institute of Technology,KKR,EC,Electronics & Communication Engineering,41299
+E126,Sir. M. Visvesvaraya Institute of Technology,KKR,IS,Information Science & Engineering,34612
+E132,Sri Krishna Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,54346
+E132,Sri Krishna Institute of Technology,GM,CS,Computer Science & Engineering,53296
+E137,Sri Venkateshwara College of Engineering,GM,CA,Computer Science & Engineering (Artificial Intelligence),50032
+E137,Sri Venkateshwara College of Engineering,GM,CD,Computer Science & Engineering (Data Science),49072
+E137,Sri Venkateshwara College of Engineering,GM,CS,Computer Science & Engineering,67791
+E137,Sri Venkateshwara College of Engineering,GM,CY,Computer Science & Engineering (Cyber Security),77106
+E137,Sri Venkateshwara College of Engineering,GM,IS,Information Science & Engineering,59541
+E137,Sri Venkateshwara College of Engineering,KKR,CD,Computer Science & Engineering (Data Science),69509
+E141,T. John Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,54749
+E141,T. John Institute of Technology,GM,CS,Computer Science & Engineering,69100
+E141,T. John Institute of Technology,GM,IC,Computer Science & Engineering (IOT & Cyber Security Including Block Chain Technology),75262
+E141,T. John Institute of Technology,GM,IS,Information Science & Engineering,69263
+E142,The National Institute of Engineering - South Campus,GM,EC,Electronics & Communication Engineering,10772
+E142,The National Institute of Engineering - South Campus,GM,EE,Electrical & Electronics Engineering,19327
+E142,The National Institute of Engineering - South Campus,GM,ME,Mechanical Engineering,39676
+E142,The National Institute of Engineering - South Campus,KKR,EC,Electronics & Communication Engineering,15157
+E142,The National Institute of Engineering - South Campus,KKR,EE,Electrical & Electronics Engineering,45687
+E143,Tontadarya College of Engineering,GM,CS,Computer Science & Engineering,48351
+E145,Vemana Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,70278
+E145,Vemana Institute of Technology,GM,CD,Computer Science & Engineering (Data Science),59990
+E145,Vemana Institute of Technology,GM,CS,Computer Science & Engineering,75994
+E145,Vemana Institute of Technology,GM,IS,Information Science & Engineering,50427
+E146,Vidya Vikas Institute of Engineering & Technology,GM,CS,Computer Science & Engineering,70831
+E146,Vidya Vikas Institute of Engineering & Technology,GM,IS,Information Science & Engineering,34114
+E146,Vidya Vikas Institute of Engineering & Technology,KKR,CS,Computer Science & Engineering,65730
+E147,Vidyavardhaka College of Engineering,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),30936
+E147,Vidyavardhaka College of Engineering,GM,CS,Computer Science & Engineering,24354
+E147,Vidyavardhaka College of Engineering,GM,EC,Electronics & Communication Engineering,45354
+E147,Vidyavardhaka College of Engineering,GM,EE,Electrical & Electronics Engineering,60096
+E147,Vidyavardhaka College of Engineering,GM,IS,Information Science & Engineering,35629
+E147,Vidyavardhaka College of Engineering,GM,ME,Mechanical Engineering,53015
+E147,Vidyavardhaka College of Engineering,KKR,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),54923
+E147,Vidyavardhaka College of Engineering,KKR,CS,Computer Science & Engineering,37542
+E147,Vidyavardhaka College of Engineering,KKR,IS,Information Science & Engineering,70902
+E149,Vivekananda Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,38170
+E149,Vivekananda Institute of Technology,GM,CS,Computer Science & Engineering,47831
+E152,ATME College of Engineering,GM,CD,Computer Science & Engineering (Data Science),60063
+E152,ATME College of Engineering,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),74285
+E152,ATME College of Engineering,GM,CS,Computer Science & Engineering,73391
+E152,ATME College of Engineering,KKR,CS,Computer Science & Engineering,53241
+E156,Jyothy Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,68917
+E156,Jyothy Institute of Technology,GM,CS,Computer Science & Engineering,75118
+E156,Jyothy Institute of Technology,GM,EC,Electronics & Communication Engineering,32634
+E156,Jyothy Institute of Technology,GM,IS,Information Science & Engineering,52303
+E161,Cambridge Institute of Technology - North Campus,GM,CS,Computer Science & Engineering,68913
+E164,Reva University,GM,AL,Agriculture Engineering,45188
+E164,Reva University,GM,AM,Automation & Robotics Engineering,50733
+E164,Reva University,GM,AS,Aerospace Engineering,66394
+E164,Reva University,GM,CV,Civil Engineering,71925
+E164,Reva University,GM,EE,Electrical & Electronics Engineering,61435
+E164,Reva University,GM,ME,Mechanical Engineering,34093
+E164,Reva University,GM,MT,Mechatronics Engineering,31876
+E165,"Alliance College of Engineering & Design, Alliance University",GM,AS,Aerospace Engineering,44565
+E165,"Alliance College of Engineering & Design, Alliance University",GM,EC,Electronics & Communication Engineering,31809
+E171,GITAM University,GM,CB,Computer Science & Business Systems,27631
+E171,GITAM University,GM,CD,Computer Science & Engineering (Data Science),16876
+E171,GITAM University,GM,CSI,Computer Science & Engineering (IOT),28605
+E171,GITAM University,GM,CY,Computer Science & Engineering (Cyber Security),19458
+E171,GITAM University,GM,EC,Electronics & Communication Engineering,57241
+E171,GITAM University,KKR,CA,Computer Science & Engineering (Artificial Intelligence),52642
+E172,Mysore College of Engineering & Management,KKR,CS,Computer Science & Engineering,69345
+E173,Presidency University,GM,CBD,Computer Science & Technology (Big Data),48504
+E173,Presidency University,GM,CD,Computer Science & Engineering (Data Science),38838
+E173,Presidency University,GM,CE,Computer Engineering,63916
+E173,Presidency University,GM,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),31532
+E173,Presidency University,GM,CIT,Computer Science & Information Technology,52268
+E173,Presidency University,GM,CNW,Computer Science & Engineering (Networks),59835
+E173,Presidency University,GM,CS,Computer Science & Engineering,34111
+E173,Presidency University,GM,CSB,Computer Science & Engineering (Block Chain),52893
+E173,Presidency University,GM,CSD,Computer Science & Technology (Devops),58032
+E173,Presidency University,GM,CSI,Computer Science & Engineering (IOT),52101
+E173,Presidency University,GM,CST,Computer Science & Technology,65238
+E173,Presidency University,GM,CY,Computer Science & Engineering (Cyber Security),51774
+E173,Presidency University,GM,EC,Electronics & Communication Engineering,53245
+E173,Presidency University,GM,EE,Electrical & Electronics Engineering,76678
+E173,Presidency University,GM,IS,Information Science & Engineering,60786
+E173,Presidency University,GM,IST,Information Science & Technology,67312
+E173,Presidency University,KKR,CE,Computer Engineering,54922
+E173,Presidency University,KKR,CI,Computer Science & Engineering (Artificial Intelligence & Machine Learning),62804
+E173,Presidency University,KKR,CS,Computer Science & Engineering,44686
+E173,Presidency University,KKR,CSD,Computer Science & Technology (Devops),57593
+E173,Presidency University,KKR,CST,Computer Science & Technology,51061
+E173,Presidency University,KKR,IS,Information Science & Engineering,67574
+E182,Dayananda Sagar University,GM,AS,Aerospace Engineering,40790
+E182,Dayananda Sagar University,GM,EC,Electronics & Communication Engineering,38045
+E182,Dayananda Sagar University,GM,RI,Robotics & Artificial Intelligence,29314
+E183,Jain Institute of Technology,GM,CS,Computer Science & Engineering,76323
+E183,Jain Institute of Technology,GM,IS,Information Science & Engineering,54003
+E187,CMR University,GM,EC,Electronics & Communication Engineering,56642
+E187,CMR University,GM,INT,Information Technology,40275
+E187,CMR University,KKR,INT,Information Technology,56378
+E194,Jain College of Engineering and Technology,GM,AI,Artificial Intelligence & Machine Learning,52030
+E194,Jain College of Engineering and Technology,GM,CS,Computer Science & Engineering,72838
+E197,Ramaiah University of Applied Sciences,GM,EE,Electrical & Electronics Engineering,32514
+E198,RV Institute of Technology and Management,GM,CS,Computer Science & Engineering,7267
+E198,RV Institute of Technology and Management,GM,EC,Electronics & Communication Engineering,9934
+E198,RV Institute of Technology and Management,GM,IS,Information Science & Engineering,8545
+E198,RV Institute of Technology and Management,KKR,CS,Computer Science & Engineering,21370
+E198,RV Institute of Technology and Management,KKR,EC,Electronics & Communication Engineering,28283
+E198,RV Institute of Technology and Management,KKR,IS,Information Science & Engineering,24951
+E199,Biluru Gurubasava Mahaswamiji Institute of Technology,GM,CS,Computer Science & Engineering,72008
+E203,Amruta Institute of Engineering & Management Sciences,GM,IS,Information Science & Engineering,45932
+E205,Vijaya Vittala Institute of Technology,GM,AI,Artificial Intelligence & Machine Learning,66519
+E207,BGS College of Engineering and Technology,GM,AD,Artificial Intelligence & Data Science,71149
+E207,BGS College of Engineering and Technology,GM,AI,Artificial Intelligence & Machine Learning,65720
+E207,BGS College of Engineering and Technology,GM,CG,Computer Science & Design,66932
+E207,BGS College of Engineering and Technology,GM,CS,Computer Science & Engineering,48241
+E207,BGS College of Engineering and Technology,GM,IS,Information Science & Engineering,57190
+E211,East West College of Engineering,GM,CS,Computer Science & Engineering,48607

@@ -25,6 +25,9 @@ function App() {
       else if (domain === 'KCET') {
         endpoint = `${BASE_URL}/predict/kcet`
       }
+      else if (domain === 'COMEDK') {
+        endpoint = `${BASE_URL}/predict/comedk`
+      }
 
       const response = await axios.post(endpoint, payload)
       setResults(response.data.data)

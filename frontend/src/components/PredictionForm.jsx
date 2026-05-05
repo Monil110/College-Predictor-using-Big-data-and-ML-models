@@ -24,6 +24,11 @@ const PredictionForm = ({ onPredict, isLoading }) => {
     region: 'General'
   });
 
+  const [comedkFormData, setComedkFormData] = useState({
+    user_rank: 15000,
+    category: 'GM'
+  });
+
   const handleDomainChange = (e) => {
     setDomain(e.target.value);
   };
@@ -40,12 +45,18 @@ const PredictionForm = ({ onPredict, isLoading }) => {
     setKcetFormData({ ...kcetFormData, [e.target.name]: e.target.value });
   };
 
+  const handleComedkChange = (e) => {
+    setComedkFormData({ ...comedkFormData, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (domain === 'JEE') {
       onPredict({ ...formData, user_rank: parseInt(formData.user_rank, 10), domain: 'JEE' });
     } else if (domain === 'KCET') {
       onPredict({ ...kcetFormData, user_rank: parseInt(kcetFormData.user_rank, 10), domain: 'KCET' });
+    } else if (domain === 'COMEDK') {
+      onPredict({ ...comedkFormData, user_rank: parseInt(comedkFormData.user_rank, 10), domain: 'COMEDK' });
     } else {
       // Maps the frontend visual `user_rank` logically to what `backend/neet/` expects: `candidate_rank`
       onPredict({ ...neetFormData, candidate_rank: parseInt(neetFormData.user_rank, 10), domain: 'NEET' });
@@ -65,6 +76,10 @@ const PredictionForm = ({ onPredict, isLoading }) => {
             <label style={{ display: "inline-flex", alignItems: "center", marginRight: "30px", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
               <input type="radio" value="KCET" checked={domain === 'KCET'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
               Engineering (KCET)
+            </label>
+            <label style={{ display: "inline-flex", alignItems: "center", marginRight: "30px", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
+              <input type="radio" value="COMEDK" checked={domain === 'COMEDK'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
+              Engineering (COMEDK)
             </label>
             <label style={{ display: "inline-flex", alignItems: "center", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
               <input type="radio" value="NEET" checked={domain === 'NEET'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
@@ -177,6 +192,20 @@ const PredictionForm = ({ onPredict, isLoading }) => {
                 <select name="region" value={kcetFormData.region} onChange={handleKcetChange}>
                   <option value="General">General Range</option>
                   <option value="Hyderabad-Karnataka">Hyderabad-Karnataka (HK)</option>
+                </select>
+              </div>
+            </>
+          ) : domain === 'COMEDK' ? (
+            <>
+              <div className="form-group">
+                <label>COMEDK Rank</label>
+                <input type="number" name="user_rank" value={comedkFormData.user_rank} onChange={handleComedkChange} required />
+              </div>
+              <div className="form-group">
+                <label>Category</label>
+                <select name="category" value={comedkFormData.category} onChange={handleComedkChange}>
+                  <option value="GM">General Merit (GM)</option>
+                  <option value="KKR">Kalyana Karnataka Region (KKR)</option>
                 </select>
               </div>
             </>

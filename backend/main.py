@@ -103,6 +103,25 @@ except Exception as e:
     kcet_model, kcet_encoders, kcet_feature_cols = None, {}, []
 
 # -------------------------
+# Load COMEDK Models
+# -------------------------
+COMEDK_MODELS_DIR = os.path.join(ROOT_DIR, "models", "comedk")
+
+try:
+    comedk_model = CatBoostRegressor()
+    comedk_model.load_model(os.path.join(COMEDK_MODELS_DIR, "comedk_model.cbm"))
+    with open(os.path.join(COMEDK_MODELS_DIR, "encoders.pkl"), "rb") as f:
+        comedk_encoders = pickle.load(f)
+    with open(os.path.join(COMEDK_MODELS_DIR, "features.pkl"), "rb") as f:
+        comedk_feature_cols = pickle.load(f)
+    with open(os.path.join(COMEDK_MODELS_DIR, "lookup.pkl"), "rb") as f:
+        comedk_lookup = pickle.load(f)
+    print("[SUCCESS] COMEDK model loaded")
+except Exception as e:
+    print(f"[ERROR] COMEDK model load failed: {e}")
+    comedk_model, comedk_encoders, comedk_feature_cols, comedk_lookup = None, {}, [], {}
+
+# -------------------------
 # Redis (optional, graceful fallback)
 # -------------------------
 try:
@@ -133,6 +152,10 @@ class KcetInputData(BaseModel):
     base_category: str
     quota: str
     region: str
+
+class ComedkInputData(BaseModel):
+    user_rank: int
+    category: str
 
 # -------------------------
 # Helpers (JEE)
@@ -192,6 +215,7 @@ def health():
             "nit": nit_model is not None,
             "neet": neet_model is not None,
             "kcet": kcet_model is not None,
+            "comedk": comedk_model is not None,
         },
         "dataset_loaded": not iit_features_df.empty,
         "redis": r is not None,
@@ -267,8 +291,7 @@ def predict_jee(data: InputData):
         structured_json["Safe"].sort(key=lambda x: x["eligibility_prob"], reverse=True)
         structured_json["Likely"].sort(key=lambda x: x["eligibility_prob"], reverse=True)
         
-        structured_json["Safe"] = structured_json["Safe"][:20]
-        structured_json["Likely"] = structured_json["Likely"][:20]
+        # Removed length limits
 
     if r:
         r.setex(key, 3600, json.dumps(structured_json))
@@ -382,7 +405,7 @@ def predict_kcet(data: KcetInputData):
 
     structured_json = {"Safe": [], "Likely": []}
 
-    for _, row in df_safe.sort_values("pred_closing_rank", ascending=False).head(15).iterrows():
+    for _, row in df_safe.sort_values("pred_closing_rank", ascending=False).iterrows():
         structured_json["Safe"].append({
             "institute": row["college_name"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
@@ -390,7 +413,113 @@ def predict_kcet(data: KcetInputData):
             "course": row["course_name"],
         })
 
-    for _, row in df_likely.sort_values("pred_closing_rank", ascending=False).head(15).iterrows():
+    for _, row in df_likely.sort_values("pred_closing_rank", ascending=False).iterrows():
+        structured_json["Likely"].append({
+            "institute": row["college_name"],
+            "predicted_cutoff": int(row["pred_closing_rank"]),
+            "tier": "Likely",
+            "course": row["course_name"],
+        })
+
+    if r:
+        r.setex(key, 3600, json.dumps(structured_json))
+
+    return {"source": "model", "data": structured_json}
+
+# -------------------------
+# Predict COMEDK
+# -------------------------
+def build_comedk_prediction_df(encoders, feature_cols, lookup, category):
+    rows = []
+    for (college, course, cat), hist in lookup.items():
+        if cat != category:
+            continue
+        if len(hist) == 0:
+            continue
+
+        rows.append({
+            "college_name": college,
+            "course_name": course,
+            "category": category,
+            "year": 2026,
+            "prev_year_closing_rank": hist[-1],
+            "closing_rank_mean": np.mean(hist),
+            "closing_rank_std": np.std(hist),
+            "closing_rank_min": min(hist),
+            "closing_rank_max": max(hist),
+            "rank_trend": max(hist) - min(hist),
+            "years_available": len(hist),
+            "latest_year": 2025,
+            "earliest_year": 2026 - len(hist),
+            "college_avg_rank": np.mean(hist),
+            "category_avg_rank": np.mean(hist),
+        })
+
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return None, None
+
+    raw_rows = df.copy()
+    for col in ["college_name", "course_name", "category"]:
+        le = encoders[col]
+        df[col] = df[col].apply(
+            lambda x: le.transform([x])[0] if x in le.classes_ else -1
+        )
+
+    df = df[(df["college_name"] != -1) & 
+            (df["course_name"] != -1) & 
+            (df["category"] != -1)]
+            
+    raw_rows = raw_rows.loc[df.index].reset_index(drop=True)
+    df = df.reset_index(drop=True)
+
+    for col in feature_cols:
+        if col not in df.columns:
+            df[col] = 0
+
+    return df[feature_cols], raw_rows
+
+
+@app.post("/predict/comedk")
+def predict_comedk(data: ComedkInputData):
+    key = f"comedk_{data.user_rank}_{data.category}"
+    if r:
+        cached = r.get(key)
+        if cached:
+            return {"source": "cache", "data": json.loads(cached)}
+
+    if comedk_model is None or not comedk_lookup:
+        return {"source": "error", "error": "COMEDK model/lookup not loaded. Check server logs."}
+
+    X, raw_rows = build_comedk_prediction_df(
+        comedk_encoders, comedk_feature_cols, comedk_lookup, data.category.upper()
+    )
+
+    if X is None:
+        return {"source": "error", "error": "No historical data found for the given category."}
+
+    log_preds = comedk_model.predict(X)
+    pred_ranks = np.expm1(log_preds).astype(int)
+    raw_rows["pred_closing_rank"] = pred_ranks
+
+    df_safe = raw_rows[raw_rows["pred_closing_rank"] > data.user_rank]
+    lower_bound = max(1, data.user_rank - 1000)
+    df_likely = raw_rows[
+        (raw_rows["pred_closing_rank"] >= lower_bound) &
+        (raw_rows["pred_closing_rank"] <= data.user_rank)
+    ]
+
+    structured_json = {"Safe": [], "Likely": []}
+
+    for _, row in df_safe.sort_values("pred_closing_rank", ascending=True).iterrows():
+        structured_json["Safe"].append({
+            "institute": row["college_name"],
+            "predicted_cutoff": int(row["pred_closing_rank"]),
+            "tier": "Safe",
+            "course": row["course_name"],
+        })
+
+    for _, row in df_likely.sort_values("pred_closing_rank", ascending=True).iterrows():
         structured_json["Likely"].append({
             "institute": row["college_name"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
