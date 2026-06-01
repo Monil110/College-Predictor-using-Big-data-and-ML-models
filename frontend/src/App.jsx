@@ -21,16 +21,14 @@ async function postWithFallback(path, payload) {
     const isLocal = base.includes('localhost')
     try {
       const res = await axios.post(`${base}${path}`, payload, {
-        timeout: isLocal ? 4000 : 90000,  // 4s for local probe, 90s for Render cold start
+        timeout: isLocal ? 4000 : 90000,
       })
       return res
     } catch (err) {
       lastError = err
-      // If it's a 4xx from the server (validation error etc.), don't try next backend
       if (err.response && err.response.status >= 400 && err.response.status < 500) {
         throw err
       }
-      // Otherwise (network error, timeout, 5xx) try next backend
     }
   }
   throw lastError
@@ -52,7 +50,7 @@ function App() {
       setLastDomain(domain)
 
       let endpoint = '/predict'
-      if (domain === 'NEET')   endpoint = '/predict/neet'
+      if (domain === 'NEET')        endpoint = '/predict/neet'
       else if (domain === 'KCET')   endpoint = '/predict/kcet'
       else if (domain === 'COMEDK') endpoint = '/predict/comedk'
 
@@ -68,7 +66,6 @@ function App() {
     } catch (error) {
       console.error('API Error:', error)
       if (error.response?.data?.detail) {
-        // FastAPI validation error
         const detail = error.response.data.detail
         if (Array.isArray(detail)) {
           setApiError(detail.map(d => d.msg).join('; '))
@@ -86,32 +83,86 @@ function App() {
   }
 
   return (
-    <div className="app-container">
-      <div className="header">
-        <h1>PredictMe</h1>
-        <p>Big Data &amp; ML Powered Admission Intelligence</p>
-        <p className="header-sub">Powered by PySpark · CatBoost · 90M+ Historical Records</p>
+    <div className="app-wrapper">
+      {/* Animated background orbs */}
+      <div className="bg-orb bg-orb-1" />
+      <div className="bg-orb bg-orb-2" />
+      <div className="bg-orb bg-orb-3" />
+
+      <div className="app-container">
+
+        {/* ── Hero Header ── */}
+        <header className="hero-header">
+          <div className="logo-badge">
+            <span className="logo-icon">🎯</span>
+          </div>
+          <h1 className="hero-title">
+            Admit<span className="hero-accent">Sense</span>
+          </h1>
+          <p className="hero-tagline">AI-Powered College Admission Intelligence</p>
+          <p className="hero-sub">
+            Powered by PySpark · CatBoost · 90M+ Historical Records
+          </p>
+
+          {/* Stats row */}
+          <div className="stats-row">
+            <div className="stat-item">
+              <span className="stat-number">4</span>
+              <span className="stat-label">Exams Covered</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-number">90M+</span>
+              <span className="stat-label">Data Points</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-number">ML</span>
+              <span className="stat-label">Powered</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-number">2026</span>
+              <span className="stat-label">Predictions</span>
+            </div>
+          </div>
+        </header>
+
+        {/* ── Form ── */}
+        <PredictionForm onPredict={handlePredict} isLoading={isLoading} />
+
+        {/* ── Loading ── */}
+        {isLoading && (
+          <div className="loading-card">
+            <div className="loading-dots">
+              <span /><span /><span />
+            </div>
+            <p className="loading-title">Analyzing your profile...</p>
+            <p className="loading-sub">Crunching historical data via PySpark &amp; CatBoost</p>
+          </div>
+        )}
+
+        {/* ── Error ── */}
+        {!isLoading && apiError && (
+          <div className="error-card">
+            <div className="error-card-icon">⚠️</div>
+            <div>
+              <p className="error-card-title">Something went wrong</p>
+              <p className="error-card-msg">{apiError}</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Results ── */}
+        {!isLoading && results && !apiError && (
+          <ResultsTable results={results} domain={lastDomain} />
+        )}
+
+        {/* ── Footer ── */}
+        <footer className="app-footer">
+          <p>AdmitSense &copy; {new Date().getFullYear()} &nbsp;·&nbsp; Built with Big Data &amp; ML</p>
+        </footer>
       </div>
-
-      <PredictionForm onPredict={handlePredict} isLoading={isLoading} />
-
-      {isLoading && (
-        <div className="loading">
-          <div className="loading-spinner" />
-          <span>Crunching historical data via PySpark &amp; CatBoost...</span>
-        </div>
-      )}
-
-      {!isLoading && apiError && (
-        <div className="error-panel glass-panel">
-          <span className="error-icon">⚠️</span>
-          <span>{apiError}</span>
-        </div>
-      )}
-
-      {!isLoading && results && !apiError && (
-        <ResultsTable results={results} domain={lastDomain} />
-      )}
     </div>
   )
 }
