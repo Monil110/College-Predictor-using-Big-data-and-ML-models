@@ -3,12 +3,11 @@ import json
 import pickle
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from catboost import CatBoostRegressor, CatBoostClassifier, Pool
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 import redis
-import glob
 
 app = FastAPI(title="College Predictor API (Unified)")
 
@@ -20,16 +19,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# -------------------------
-# Base Directory (anchored to this file's location)
-# Ensures paths work regardless of where Render launches the process
-# -------------------------
+# ─── Base Directories ─────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
 
-# -------------------------
-# Load JEE Models
-# -------------------------
+# ─── Load JEE Models ──────────────────────────────────────────────────────────
 MODELS_DIR = os.path.join(ROOT_DIR, "models", "jee")
 
 def load_jee_parquet(path: str) -> pd.DataFrame:
@@ -67,10 +61,7 @@ except Exception as e:
     iit_features_df = pd.DataFrame()
     nit_features_df = pd.DataFrame()
 
-
-# -------------------------
-# Load NEET Models
-# -------------------------
+# ─── Load NEET Models ─────────────────────────────────────────────────────────
 NEET_MODELS_DIR = os.path.join(ROOT_DIR, "models", "neet")
 
 try:
@@ -85,9 +76,7 @@ except Exception as e:
     print(f"[ERROR] NEET model load failed: {e}")
     neet_model, neet_encoders, neet_feature_cols = None, {}, []
 
-# -------------------------
-# Load KCET Models
-# -------------------------
+# ─── Load KCET Models ─────────────────────────────────────────────────────────
 KCET_MODELS_DIR = os.path.join(ROOT_DIR, "models", "kcet")
 
 try:
@@ -102,9 +91,7 @@ except Exception as e:
     print(f"[ERROR] KCET model load failed: {e}")
     kcet_model, kcet_encoders, kcet_feature_cols = None, {}, []
 
-# -------------------------
-# Load COMEDK Models
-# -------------------------
+# ─── Load COMEDK Models ───────────────────────────────────────────────────────
 COMEDK_MODELS_DIR = os.path.join(ROOT_DIR, "models", "comedk")
 
 try:
@@ -121,9 +108,7 @@ except Exception as e:
     print(f"[ERROR] COMEDK model load failed: {e}")
     comedk_model, comedk_encoders, comedk_feature_cols, comedk_lookup = None, {}, [], {}
 
-# -------------------------
-# Redis (optional, graceful fallback)
-# -------------------------
+# ─── Redis (optional) ─────────────────────────────────────────────────────────
 try:
     r = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
     r.ping()
@@ -132,9 +117,21 @@ except Exception as e:
     print(f"[WARN] Redis unavailable (caching disabled): {e}")
     r = None
 
-# -------------------------
-# Input Schemas
-# -------------------------
+# ─── Rank Validation Helper ───────────────────────────────────────────────────
+def validate_rank(rank: int, field_name: str = "rank", max_rank: int = 5_000_000):
+    """Raise HTTPException 422 for invalid ranks."""
+    if rank <= 0:
+        raise HTTPException(
+            status_code=422,
+            detail=f"{field_name} must be greater than 0. Got {rank}."
+        )
+    if rank > max_rank:
+        raise HTTPException(
+            status_code=422,
+            detail=f"{field_name} {rank} seems unrealistically high (max {max_rank:,}). Please verify."
+        )
+
+# ─── Input Schemas ────────────────────────────────────────────────────────────
 class InputData(BaseModel):
     user_rank: int
     exam_type: str
@@ -142,9 +139,25 @@ class InputData(BaseModel):
     quota: str
     pool: str
 
+    @field_validator("user_rank")
+    @classmethod
+    def rank_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError("user_rank must be greater than 0")
+        return v
+
+
 class NeetInputData(BaseModel):
     candidate_rank: int
     category: str
+
+    @field_validator("candidate_rank")
+    @classmethod
+    def rank_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError("candidate_rank must be greater than 0")
+        return v
+
 
 class KcetInputData(BaseModel):
     user_rank: int
@@ -153,13 +166,27 @@ class KcetInputData(BaseModel):
     quota: str
     region: str
 
+    @field_validator("user_rank")
+    @classmethod
+    def rank_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError("user_rank must be greater than 0")
+        return v
+
+
 class ComedkInputData(BaseModel):
     user_rank: int
     category: str
 
-# -------------------------
-# Helpers (JEE)
-# -------------------------
+    @field_validator("user_rank")
+    @classmethod
+    def rank_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError("user_rank must be greater than 0")
+        return v
+
+
+# ─── JEE Feature Helpers ──────────────────────────────────────────────────────
 CATEGORICAL_FEATURES = [
     "institute_short",
     "program_name",
@@ -199,33 +226,34 @@ def prepare_jee_features(df: pd.DataFrame, student_rank: int) -> pd.DataFrame:
     available = [c for c in all_cols if c in df.columns]
     return df[available]
 
-# -------------------------
-# Routes
-# -------------------------
+
+# ─── Routes ───────────────────────────────────────────────────────────────────
 @app.get("/")
 def home():
     return {"message": "PredictMe Unified Predictor API Running"}
+
 
 @app.get("/health")
 def health():
     return {
         "status": "ok",
         "models": {
-            "iit": iit_model is not None,
-            "nit": nit_model is not None,
-            "neet": neet_model is not None,
-            "kcet": kcet_model is not None,
+            "iit":    iit_model is not None,
+            "nit":    nit_model is not None,
+            "neet":   neet_model is not None,
+            "kcet":   kcet_model is not None,
             "comedk": comedk_model is not None,
         },
         "dataset_loaded": not iit_features_df.empty,
         "redis": r is not None,
     }
 
-# -------------------------
-# Predict JEE
-# -------------------------
+
+# ─── Predict JEE ──────────────────────────────────────────────────────────────
 @app.post("/predict")
 def predict_jee(data: InputData):
+    validate_rank(data.user_rank, "JEE Rank", max_rank=1_500_000)
+
     key = f"jee_{data.user_rank}_{data.exam_type}_{data.category}_{data.quota}_{data.pool}"
     if r:
         cached = r.get(key)
@@ -254,7 +282,7 @@ def predict_jee(data: InputData):
     filtered = features_df[mask].reset_index(drop=True)
 
     structured_json = {"Safe": [], "Likely": []}
-    
+
     if not filtered.empty:
         X = prepare_jee_features(filtered, data.user_rank)
         cat_cols = [c for c in CATEGORICAL_FEATURES if c in X.columns]
@@ -265,9 +293,8 @@ def predict_jee(data: InputData):
         results = filtered[["institute_short", "program_name", "degree_short",
                              "closing_rank_max", "closing_rank_avg",
                              "trend_direction", "difficulty_pct"]].copy()
-        
         results["eligibility_prob"] = probs.round(4)
-        
+
         for _, row in results.iterrows():
             prob = row["eligibility_prob"]
             if prob >= 0.70:
@@ -278,31 +305,31 @@ def predict_jee(data: InputData):
                 continue
 
             item = {
-                "institute": row["institute_short"],
-                "program": row["program_name"],
+                "institute":        row["institute_short"],
+                "program":          row["program_name"],
                 "program_duration": str(row.get("degree_short", "4 Years")),
-                "degree_short": row["degree_short"],
+                "degree_short":     row["degree_short"],
                 "predicted_cutoff": int(row.get("closing_rank_max", 0)),
                 "eligibility_prob": float(prob),
-                "tier": tier,
+                "tier":             tier,
             }
             structured_json[tier].append(item)
-            
-        structured_json["Safe"].sort(key=lambda x: x["eligibility_prob"], reverse=True)
-        structured_json["Likely"].sort(key=lambda x: x["eligibility_prob"], reverse=True)
-        
-        # Removed length limits
+
+        # Sort ascending by predicted_cutoff (lower cutoff = more prestigious first)
+        structured_json["Safe"].sort(key=lambda x: x["predicted_cutoff"])
+        structured_json["Likely"].sort(key=lambda x: x["predicted_cutoff"])
 
     if r:
         r.setex(key, 3600, json.dumps(structured_json))
 
     return {"source": "model", "data": structured_json}
 
-# -------------------------
-# Predict NEET
-# -------------------------
+
+# ─── Predict NEET ─────────────────────────────────────────────────────────────
 @app.post("/predict/neet")
 def predict_neet(data: NeetInputData):
+    validate_rank(data.candidate_rank, "NEET Rank", max_rank=2_000_000)
+
     key = f"neet_{data.candidate_rank}_{data.category}"
     if r:
         cached = r.get(key)
@@ -341,20 +368,21 @@ def predict_neet(data: NeetInputData):
 
     structured_json = {"Safe": [], "Likely": []}
 
-    for _, row in df_safe.sort_values("pred_closing_rank", ascending=False).iterrows():
+    # Sort ascending: lower cutoff = more prestigious first
+    for _, row in df_safe.sort_values("pred_closing_rank", ascending=True).iterrows():
         structured_json["Safe"].append({
-            "institute": row["institute"],
+            "institute":        row["institute"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
-            "tier": "Safe",
-            "course": "MBBS",
+            "tier":             "Safe",
+            "course":           "MBBS",
         })
 
-    for _, row in df_likely.sort_values("pred_closing_rank", ascending=False).iterrows():
+    for _, row in df_likely.sort_values("pred_closing_rank", ascending=True).iterrows():
         structured_json["Likely"].append({
-            "institute": row["institute"],
+            "institute":        row["institute"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
-            "tier": "Likely",
-            "course": "MBBS",
+            "tier":             "Likely",
+            "course":           "MBBS",
         })
 
     if r:
@@ -362,11 +390,12 @@ def predict_neet(data: NeetInputData):
 
     return {"source": "model", "data": structured_json}
 
-# -------------------------
-# Predict KCET
-# -------------------------
+
+# ─── Predict KCET ─────────────────────────────────────────────────────────────
 @app.post("/predict/kcet")
 def predict_kcet(data: KcetInputData):
+    validate_rank(data.user_rank, "KCET Rank", max_rank=300_000)
+
     key = f"kcet_{data.user_rank}_{data.category}_{data.base_category}_{data.quota}_{data.region}"
     if r:
         cached = r.get(key)
@@ -377,7 +406,7 @@ def predict_kcet(data: KcetInputData):
         return {"source": "error", "error": "KCET model not loaded. Check server logs."}
 
     colleges = kcet_encoders.get("college_name", [])
-    courses = kcet_encoders.get("course_name", [])
+    courses  = kcet_encoders.get("course_name", [])
 
     if not colleges or not courses:
         return {"source": "error", "error": "No college/course encoding found in kcet_encoders."}
@@ -386,11 +415,11 @@ def predict_kcet(data: KcetInputData):
         [colleges, courses], names=["college_name", "course_name"]
     ).to_frame(index=False)
 
-    df_grid["category"] = data.category.upper()
+    df_grid["category"]      = data.category.upper()
     df_grid["base_category"] = data.base_category.upper()
-    df_grid["quota"] = data.quota.upper()
-    df_grid["region"] = data.region.upper()
-    df_grid["year"] = 2026
+    df_grid["quota"]         = data.quota.upper()
+    df_grid["region"]        = data.region.upper()
+    df_grid["year"]          = 2026
 
     X = df_grid[kcet_feature_cols]
     log_preds = kcet_model.predict(X)
@@ -405,20 +434,21 @@ def predict_kcet(data: KcetInputData):
 
     structured_json = {"Safe": [], "Likely": []}
 
-    for _, row in df_safe.sort_values("pred_closing_rank", ascending=False).iterrows():
+    # Sort ascending: lower cutoff = more prestigious first
+    for _, row in df_safe.sort_values("pred_closing_rank", ascending=True).iterrows():
         structured_json["Safe"].append({
-            "institute": row["college_name"],
+            "institute":        row["college_name"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
-            "tier": "Safe",
-            "course": row["course_name"],
+            "tier":             "Safe",
+            "course":           row["course_name"],
         })
 
-    for _, row in df_likely.sort_values("pred_closing_rank", ascending=False).iterrows():
+    for _, row in df_likely.sort_values("pred_closing_rank", ascending=True).iterrows():
         structured_json["Likely"].append({
-            "institute": row["college_name"],
+            "institute":        row["college_name"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
-            "tier": "Likely",
-            "course": row["course_name"],
+            "tier":             "Likely",
+            "course":           row["course_name"],
         })
 
     if r:
@@ -426,9 +456,8 @@ def predict_kcet(data: KcetInputData):
 
     return {"source": "model", "data": structured_json}
 
-# -------------------------
-# Predict COMEDK
-# -------------------------
+
+# ─── Predict COMEDK ───────────────────────────────────────────────────────────
 def build_comedk_prediction_df(encoders, feature_cols, lookup, category):
     rows = []
     for (college, course, cat), hist in lookup.items():
@@ -438,21 +467,21 @@ def build_comedk_prediction_df(encoders, feature_cols, lookup, category):
             continue
 
         rows.append({
-            "college_name": college,
-            "course_name": course,
-            "category": category,
-            "year": 2026,
+            "college_name":           college,
+            "course_name":            course,
+            "category":               category,
+            "year":                   2026,
             "prev_year_closing_rank": hist[-1],
-            "closing_rank_mean": np.mean(hist),
-            "closing_rank_std": np.std(hist),
-            "closing_rank_min": min(hist),
-            "closing_rank_max": max(hist),
-            "rank_trend": max(hist) - min(hist),
-            "years_available": len(hist),
-            "latest_year": 2025,
-            "earliest_year": 2026 - len(hist),
-            "college_avg_rank": np.mean(hist),
-            "category_avg_rank": np.mean(hist),
+            "closing_rank_mean":      np.mean(hist),
+            "closing_rank_std":       np.std(hist),
+            "closing_rank_min":       min(hist),
+            "closing_rank_max":       max(hist),
+            "rank_trend":             max(hist) - min(hist),
+            "years_available":        len(hist),
+            "latest_year":            2025,
+            "earliest_year":          2026 - len(hist),
+            "college_avg_rank":       np.mean(hist),
+            "category_avg_rank":      np.mean(hist),
         })
 
     df = pd.DataFrame(rows)
@@ -466,10 +495,10 @@ def build_comedk_prediction_df(encoders, feature_cols, lookup, category):
             lambda x: le.transform([x])[0] if x in le.classes_ else -1
         )
 
-    df = df[(df["college_name"] != -1) & 
-            (df["course_name"] != -1) & 
-            (df["category"] != -1)]
-            
+    df = df[(df["college_name"] != -1) &
+            (df["course_name"]  != -1) &
+            (df["category"]     != -1)]
+
     raw_rows = raw_rows.loc[df.index].reset_index(drop=True)
     df = df.reset_index(drop=True)
 
@@ -482,6 +511,8 @@ def build_comedk_prediction_df(encoders, feature_cols, lookup, category):
 
 @app.post("/predict/comedk")
 def predict_comedk(data: ComedkInputData):
+    validate_rank(data.user_rank, "COMEDK Rank", max_rank=200_000)
+
     key = f"comedk_{data.user_rank}_{data.category}"
     if r:
         cached = r.get(key)
@@ -511,20 +542,21 @@ def predict_comedk(data: ComedkInputData):
 
     structured_json = {"Safe": [], "Likely": []}
 
+    # Sort ascending: lower cutoff = more prestigious first
     for _, row in df_safe.sort_values("pred_closing_rank", ascending=True).iterrows():
         structured_json["Safe"].append({
-            "institute": row["college_name"],
+            "institute":        row["college_name"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
-            "tier": "Safe",
-            "course": row["course_name"],
+            "tier":             "Safe",
+            "course":           row["course_name"],
         })
 
     for _, row in df_likely.sort_values("pred_closing_rank", ascending=True).iterrows():
         structured_json["Likely"].append({
-            "institute": row["college_name"],
+            "institute":        row["college_name"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
-            "tier": "Likely",
-            "course": row["course_name"],
+            "tier":             "Likely",
+            "course":           row["course_name"],
         })
 
     if r:

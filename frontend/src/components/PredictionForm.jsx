@@ -1,104 +1,200 @@
 import React, { useState } from 'react';
 
+// ─── Rank validation ────────────────────────────────────────────────────────
+// Rules:
+//  • Raw string "00000" (all zeros) → error
+//  • Leading zeros like "0001" → treated as 1 (parseInt strips them)
+//  • 0 or negative → error
+//  • Non-integer → error
+function validateRank(rawValue, label, max) {
+  const str = String(rawValue).trim();
+
+  // All zeros check (e.g. "000", "00000")
+  if (/^0+$/.test(str)) {
+    return `${label} cannot be zero. Please enter a valid rank.`;
+  }
+
+  const parsed = parseInt(str, 10);
+
+  if (isNaN(parsed) || !Number.isFinite(parsed)) {
+    return `${label} must be a valid number.`;
+  }
+  if (parsed <= 0) {
+    return `${label} must be greater than 0.`;
+  }
+  if (max && parsed > max) {
+    return `${label} seems too high (max ${max.toLocaleString()}). Please verify.`;
+  }
+  return null; // valid
+}
+
+const RANK_LIMITS = {
+  JEE_ADVANCED: 200000,
+  JEE_MAIN: 1200000,
+  NEET: 2000000,
+  KCET: 200000,
+  COMEDK: 200000,
+};
+
+// ─── Component ───────────────────────────────────────────────────────────────
 const PredictionForm = ({ onPredict, isLoading }) => {
   const [domain, setDomain] = useState('JEE');
-  
+  const [rankError, setRankError] = useState('');
+
   const [formData, setFormData] = useState({
-    user_rank: 2500,
+    user_rank: '',
     exam_type: 'JEE Advanced',
     category: 'GEN',
     quota: 'AI',
-    pool: 'Gender-Neutral'
+    pool: 'Gender-Neutral',
   });
 
   const [neetFormData, setNeetFormData] = useState({
-    user_rank: 5000,
-    category: 'OPEN SEAT'
+    user_rank: '',
+    category: 'OPEN SEAT',
   });
 
   const [kcetFormData, setKcetFormData] = useState({
-    user_rank: 25000,
+    user_rank: '',
     category: 'GM',
     base_category: 'GM',
     quota: 'General',
-    region: 'General'
+    region: 'General',
   });
 
   const [comedkFormData, setComedkFormData] = useState({
-    user_rank: 15000,
-    category: 'GM'
+    user_rank: '',
+    category: 'GM',
   });
 
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleDomainChange = (e) => {
     setDomain(e.target.value);
+    setRankError('');
   };
 
   const handleJeeChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.name === 'user_rank') setRankError('');
   };
 
   const handleNeetChange = (e) => {
     setNeetFormData({ ...neetFormData, [e.target.name]: e.target.value });
+    if (e.target.name === 'user_rank') setRankError('');
   };
 
   const handleKcetChange = (e) => {
     setKcetFormData({ ...kcetFormData, [e.target.name]: e.target.value });
+    if (e.target.name === 'user_rank') setRankError('');
   };
 
   const handleComedkChange = (e) => {
     setComedkFormData({ ...comedkFormData, [e.target.name]: e.target.value });
+    if (e.target.name === 'user_rank') setRankError('');
   };
 
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    let rawRank, rankLabel, rankMax;
+
     if (domain === 'JEE') {
-      onPredict({ ...formData, user_rank: parseInt(formData.user_rank, 10), domain: 'JEE' });
+      rawRank = formData.user_rank;
+      rankLabel = 'JEE Rank';
+      rankMax = formData.exam_type === 'JEE Advanced'
+        ? RANK_LIMITS.JEE_ADVANCED
+        : RANK_LIMITS.JEE_MAIN;
+    } else if (domain === 'NEET') {
+      rawRank = neetFormData.user_rank;
+      rankLabel = 'NEET Rank';
+      rankMax = RANK_LIMITS.NEET;
     } else if (domain === 'KCET') {
-      onPredict({ ...kcetFormData, user_rank: parseInt(kcetFormData.user_rank, 10), domain: 'KCET' });
-    } else if (domain === 'COMEDK') {
-      onPredict({ ...comedkFormData, user_rank: parseInt(comedkFormData.user_rank, 10), domain: 'COMEDK' });
+      rawRank = kcetFormData.user_rank;
+      rankLabel = 'KCET Rank';
+      rankMax = RANK_LIMITS.KCET;
     } else {
-      // Maps the frontend visual `user_rank` logically to what `backend/neet/` expects: `candidate_rank`
-      onPredict({ ...neetFormData, candidate_rank: parseInt(neetFormData.user_rank, 10), domain: 'NEET' });
+      rawRank = comedkFormData.user_rank;
+      rankLabel = 'COMEDK Rank';
+      rankMax = RANK_LIMITS.COMEDK;
+    }
+
+    const error = validateRank(rawRank, rankLabel, rankMax);
+    if (error) {
+      setRankError(error);
+      return;
+    }
+
+    setRankError('');
+    const parsedRank = parseInt(String(rawRank).trim(), 10);
+
+    if (domain === 'JEE') {
+      onPredict({ ...formData, user_rank: parsedRank, domain: 'JEE' });
+    } else if (domain === 'KCET') {
+      onPredict({ ...kcetFormData, user_rank: parsedRank, domain: 'KCET' });
+    } else if (domain === 'COMEDK') {
+      onPredict({ ...comedkFormData, user_rank: parsedRank, domain: 'COMEDK' });
+    } else {
+      onPredict({
+        ...neetFormData,
+        candidate_rank: parsedRank,
+        domain: 'NEET',
+      });
     }
   };
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="glass-panel">
-      <form onSubmit={handleSubmit}>
-        
-        {/* Toggle Controls */}
-        <div className="form-group" style={{ textAlign: "center", marginBottom: "25px", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "15px" }}>
-            <label style={{ display: "inline-flex", alignItems: "center", marginRight: "30px", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
-              <input type="radio" value="JEE" checked={domain === 'JEE'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
-              Engineering (JEE)
+      <form onSubmit={handleSubmit} noValidate>
+
+        {/* Domain Tabs */}
+        <div className="domain-tabs">
+          {[
+            { value: 'JEE',    label: '🎓 Engineering (JEE)' },
+            { value: 'KCET',   label: '🎓 Engineering (KCET)' },
+            { value: 'COMEDK', label: '🎓 Engineering (COMEDK)' },
+            { value: 'NEET',   label: '🩺 Medical (NEET)' },
+          ].map(({ value, label }) => (
+            <label
+              key={value}
+              className={`domain-tab ${domain === value ? 'active' : ''}`}
+            >
+              <input
+                type="radio"
+                value={value}
+                checked={domain === value}
+                onChange={handleDomainChange}
+                style={{ display: 'none' }}
+              />
+              {label}
             </label>
-            <label style={{ display: "inline-flex", alignItems: "center", marginRight: "30px", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
-              <input type="radio" value="KCET" checked={domain === 'KCET'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
-              Engineering (KCET)
-            </label>
-            <label style={{ display: "inline-flex", alignItems: "center", marginRight: "30px", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
-              <input type="radio" value="COMEDK" checked={domain === 'COMEDK'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
-              Engineering (COMEDK)
-            </label>
-            <label style={{ display: "inline-flex", alignItems: "center", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold" }}>
-              <input type="radio" value="NEET" checked={domain === 'NEET'} onChange={handleDomainChange} style={{marginRight: "8px", width: "18px", height: "18px"}} /> 
-              Medical (NEET)
-            </label>
+          ))}
         </div>
 
+        {/* Form Fields */}
         <div className="form-grid">
-          {domain === 'JEE' ? (
+          {domain === 'JEE' && (
             <>
               <div className="form-group">
                 <label>JEE Rank</label>
-                <input type="number" name="user_rank" value={formData.user_rank} onChange={handleJeeChange} required />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  name="user_rank"
+                  value={formData.user_rank}
+                  onChange={handleJeeChange}
+                  placeholder="e.g. 2500"
+                  className={rankError ? 'input-error' : ''}
+                  required
+                />
+                {rankError && <span className="field-error">{rankError}</span>}
               </div>
               <div className="form-group">
                 <label>Exam Mode</label>
                 <select name="exam_type" value={formData.exam_type} onChange={handleJeeChange}>
                   <option value="JEE Advanced">JEE Advanced (IITs)</option>
-                  <option value="JEE Main">JEE Main (NITs & IIITs)</option>
+                  <option value="JEE Main">JEE Main (NITs &amp; IIITs)</option>
                 </select>
               </div>
               <div className="form-group">
@@ -127,11 +223,23 @@ const PredictionForm = ({ onPredict, isLoading }) => {
                 </select>
               </div>
             </>
-          ) : domain === 'NEET' ? (
+          )}
+
+          {domain === 'NEET' && (
             <>
               <div className="form-group">
                 <label>NEET Rank</label>
-                <input type="number" name="user_rank" value={neetFormData.user_rank} onChange={handleNeetChange} required />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  name="user_rank"
+                  value={neetFormData.user_rank}
+                  onChange={handleNeetChange}
+                  placeholder="e.g. 5000"
+                  className={rankError ? 'input-error' : ''}
+                  required
+                />
+                {rankError && <span className="field-error">{rankError}</span>}
               </div>
               <div className="form-group">
                 <label>Allotted Category Constraint</label>
@@ -145,11 +253,23 @@ const PredictionForm = ({ onPredict, isLoading }) => {
                 </select>
               </div>
             </>
-          ) : domain === 'KCET' ? (
+          )}
+
+          {domain === 'KCET' && (
             <>
               <div className="form-group">
                 <label>KCET Rank</label>
-                <input type="number" name="user_rank" value={kcetFormData.user_rank} onChange={handleKcetChange} required />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  name="user_rank"
+                  value={kcetFormData.user_rank}
+                  onChange={handleKcetChange}
+                  placeholder="e.g. 25000"
+                  className={rankError ? 'input-error' : ''}
+                  required
+                />
+                {rankError && <span className="field-error">{rankError}</span>}
               </div>
               <div className="form-group">
                 <label>Rank Category</label>
@@ -195,11 +315,23 @@ const PredictionForm = ({ onPredict, isLoading }) => {
                 </select>
               </div>
             </>
-          ) : domain === 'COMEDK' ? (
+          )}
+
+          {domain === 'COMEDK' && (
             <>
               <div className="form-group">
                 <label>COMEDK Rank</label>
-                <input type="number" name="user_rank" value={comedkFormData.user_rank} onChange={handleComedkChange} required />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  name="user_rank"
+                  value={comedkFormData.user_rank}
+                  onChange={handleComedkChange}
+                  placeholder="e.g. 15000"
+                  className={rankError ? 'input-error' : ''}
+                  required
+                />
+                {rankError && <span className="field-error">{rankError}</span>}
               </div>
               <div className="form-group">
                 <label>Category</label>
@@ -209,10 +341,11 @@ const PredictionForm = ({ onPredict, isLoading }) => {
                 </select>
               </div>
             </>
-          ) : null}
+          )}
         </div>
+
         <button type="submit" className="submit-btn" disabled={isLoading}>
-          {isLoading ? 'Booting ML Network...' : 'Predict Admission Tier'}
+          {isLoading ? 'Analyzing...' : '🔍 Predict Admission Tier'}
         </button>
       </form>
     </div>

@@ -4,37 +4,82 @@ import PredictionForm from './components/PredictionForm'
 import ResultsTable from './components/ResultsTable'
 import './index.css'
 
+// In development (localhost), try local backend first with a short timeout.
+// In production (Vercel/any non-localhost origin), go straight to Render.
+const IS_LOCAL = window.location.hostname === 'localhost' ||
+                 window.location.hostname === '127.0.0.1'
+
+const RENDER_URL = 'https://college-predictor-using-big-data-and-ml.onrender.com'
+
+const BACKENDS = IS_LOCAL
+  ? ['http://localhost:8000', RENDER_URL]
+  : [RENDER_URL]
+
+async function postWithFallback(path, payload) {
+  let lastError = null
+  for (const base of BACKENDS) {
+    const isLocal = base.includes('localhost')
+    try {
+      const res = await axios.post(`${base}${path}`, payload, {
+        timeout: isLocal ? 4000 : 90000,  // 4s for local probe, 90s for Render cold start
+      })
+      return res
+    } catch (err) {
+      lastError = err
+      // If it's a 4xx from the server (validation error etc.), don't try next backend
+      if (err.response && err.response.status >= 400 && err.response.status < 500) {
+        throw err
+      }
+      // Otherwise (network error, timeout, 5xx) try next backend
+    }
+  }
+  throw lastError
+}
+
 function App() {
   const [results, setResults] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
-
-  const BASE_URL = 'https://college-predictor-using-big-data-and-ml.onrender.com'
+  const [apiError, setApiError] = useState(null)
+  const [lastDomain, setLastDomain] = useState(null)
 
   const handlePredict = async (data) => {
     setIsLoading(true)
     setResults(null)
+    setApiError(null)
 
     try {
       const { domain, ...payload } = data
+      setLastDomain(domain)
 
-      let endpoint = `${BASE_URL}/predict`
+      let endpoint = '/predict'
+      if (domain === 'NEET')   endpoint = '/predict/neet'
+      else if (domain === 'KCET')   endpoint = '/predict/kcet'
+      else if (domain === 'COMEDK') endpoint = '/predict/comedk'
 
-      if (domain === 'NEET') {
-        endpoint = `${BASE_URL}/predict/neet`
+      const response = await postWithFallback(endpoint, payload)
+      const responseData = response.data
+
+      if (responseData.source === 'error') {
+        setApiError(responseData.error || 'Prediction failed. Please try again.')
+        setResults(null)
+      } else {
+        setResults(responseData.data)
       }
-      else if (domain === 'KCET') {
-        endpoint = `${BASE_URL}/predict/kcet`
-      }
-      else if (domain === 'COMEDK') {
-        endpoint = `${BASE_URL}/predict/comedk`
-      }
-
-      const response = await axios.post(endpoint, payload)
-      setResults(response.data.data)
-
     } catch (error) {
-      console.error("API Error:", error)
-      alert("Failed to connect to deployed backend.")
+      console.error('API Error:', error)
+      if (error.response?.data?.detail) {
+        // FastAPI validation error
+        const detail = error.response.data.detail
+        if (Array.isArray(detail)) {
+          setApiError(detail.map(d => d.msg).join('; '))
+        } else {
+          setApiError(String(detail))
+        }
+      } else if (error.code === 'ECONNABORTED') {
+        setApiError('Request timed out. The server may be waking up — please try again in a moment.')
+      } else {
+        setApiError('Could not connect to the prediction server. Please check your connection and try again.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -44,18 +89,29 @@ function App() {
     <div className="app-container">
       <div className="header">
         <h1>PredictMe</h1>
-        <p>Big Data & ML Powered Admission Intelligence</p>
+        <p>Big Data &amp; ML Powered Admission Intelligence</p>
+        <p className="header-sub">Powered by PySpark · CatBoost · 90M+ Historical Records</p>
       </div>
 
       <PredictionForm onPredict={handlePredict} isLoading={isLoading} />
 
       {isLoading && (
         <div className="loading">
-          Crunching 90M+ Historical Rows via PySpark & XGBoost/CatBoost...
+          <div className="loading-spinner" />
+          <span>Crunching historical data via PySpark &amp; CatBoost...</span>
         </div>
       )}
 
-      {!isLoading && results && <ResultsTable results={results} />}
+      {!isLoading && apiError && (
+        <div className="error-panel glass-panel">
+          <span className="error-icon">⚠️</span>
+          <span>{apiError}</span>
+        </div>
+      )}
+
+      {!isLoading && results && !apiError && (
+        <ResultsTable results={results} domain={lastDomain} />
+      )}
     </div>
   )
 }
