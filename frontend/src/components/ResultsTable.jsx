@@ -117,7 +117,7 @@ const ResultsTable = ({ results, domain }) => {
     );
   }, [activeTab, search, safeList, likelyList]);
 
-  const hasProb = !!(safeList[0] || likelyList[0] || {}).eligibility_prob;
+  const hasProb = false; // eligibility_prob removed — rank-based filtering is the gate
 
   return (
     <div className="results-card">
@@ -238,7 +238,8 @@ const ResultsTable = ({ results, domain }) => {
 
       <p className="results-footnote">
         ℹ️ Results sorted by predicted cutoff (ascending) — most prestigious colleges appear first.
-        Safe = high admission probability · Likely = moderate probability.
+        Safe = cutoff comfortably above your rank · Likely = cutoff close to your rank.
+        All listed colleges are ones where your rank qualifies for admission.
       </p>
     </div>
   );

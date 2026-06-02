@@ -254,7 +254,7 @@ def health():
 def predict_jee(data: InputData):
     validate_rank(data.user_rank, "JEE Rank", max_rank=1_500_000)
 
-    key = f"jee_{data.user_rank}_{data.exam_type}_{data.category}_{data.quota}_{data.pool}"
+    key = f"jee3_{data.user_rank}_{data.exam_type}_{data.category}_{data.quota}_{data.pool}"
     if r:
         cached = r.get(key)
         if cached:
@@ -296,7 +296,24 @@ def predict_jee(data: InputData):
         results["eligibility_prob"] = probs.round(4)
 
         for _, row in results.iterrows():
+            cutoff = int(row.get("closing_rank_max", 0))
             prob = row["eligibility_prob"]
+
+            # ── Rank logic ────────────────────────────────────────────────────
+            # In Indian exams: LOWER rank number = BETTER student.
+            # Cutoff rank = worst rank admitted. Student is eligible only if:
+            #   student_rank <= cutoff_rank  (student rank is equal or better)
+            #
+            # Safe  : cutoff is comfortably above user_rank (big positive margin)
+            #         → prob >= 0.70 AND cutoff >= user_rank
+            # Likely: cutoff is slightly above or right at user_rank (tight margin)
+            #         → prob >= 0.40 AND cutoff >= user_rank
+            # Exclude: cutoff < user_rank → student rank is worse than cutoff → not eligible
+            # ─────────────────────────────────────────────────────────────────
+            if cutoff < data.user_rank:
+                # College cutoff is worse than student rank → student is NOT eligible
+                continue
+
             if prob >= 0.70:
                 tier = "Safe"
             elif prob >= 0.40:
@@ -309,8 +326,7 @@ def predict_jee(data: InputData):
                 "program":          row["program_name"],
                 "program_duration": str(row.get("degree_short", "4 Years")),
                 "degree_short":     row["degree_short"],
-                "predicted_cutoff": int(row.get("closing_rank_max", 0)),
-                "eligibility_prob": float(prob),
+                "predicted_cutoff": cutoff,
                 "tier":             tier,
             }
             structured_json[tier].append(item)
@@ -330,7 +346,7 @@ def predict_jee(data: InputData):
 def predict_neet(data: NeetInputData):
     validate_rank(data.candidate_rank, "NEET Rank", max_rank=2_000_000)
 
-    key = f"neet_{data.candidate_rank}_{data.category}"
+    key = f"neet2_{data.candidate_rank}_{data.category}"
     if r:
         cached = r.get(key)
         if cached:
@@ -360,15 +376,23 @@ def predict_neet(data: NeetInputData):
     pred_ranks = np.expm1(log_preds)
     df_raw["pred_closing_rank"] = pred_ranks
 
-    df_safe = df_raw[df_raw["pred_closing_rank"] > data.candidate_rank]
+    # ── Rank logic ────────────────────────────────────────────────────────────
+    # student_rank <= cutoff → eligible (student rank is equal or better than cutoff)
+    # Safe  : cutoff > user_rank + safety margin (comfortable, lots of room)
+    # Likely: cutoff >= user_rank AND cutoff <= user_rank + safety margin (tight)
+    # Exclude: cutoff < user_rank → NOT eligible
+    # ─────────────────────────────────────────────────────────────────────────
+    safe_margin = 1500  # cutoff must be this much above user rank to be "Safe"
+
+    df_safe = df_raw[df_raw["pred_closing_rank"] >= (data.candidate_rank + safe_margin)]
     df_likely = df_raw[
-        (df_raw["pred_closing_rank"] > (data.candidate_rank - 1500)) &
-        (df_raw["pred_closing_rank"] <= data.candidate_rank)
+        (df_raw["pred_closing_rank"] >= data.candidate_rank) &
+        (df_raw["pred_closing_rank"] < (data.candidate_rank + safe_margin))
     ]
 
     structured_json = {"Safe": [], "Likely": []}
 
-    # Sort ascending: lower cutoff = more prestigious first
+    # Sort ascending: lower cutoff = more prestigious/competitive first
     for _, row in df_safe.sort_values("pred_closing_rank", ascending=True).iterrows():
         structured_json["Safe"].append({
             "institute":        row["institute"],
@@ -426,10 +450,18 @@ def predict_kcet(data: KcetInputData):
     pred_ranks = np.expm1(log_preds)
     df_grid["pred_closing_rank"] = pred_ranks
 
-    df_safe = df_grid[df_grid["pred_closing_rank"] > data.user_rank]
+    # ── Rank logic ────────────────────────────────────────────────────────────
+    # student_rank <= cutoff → eligible
+    # Safe  : cutoff > user_rank + safety margin
+    # Likely: cutoff >= user_rank AND cutoff <= user_rank + safety margin
+    # Exclude: cutoff < user_rank → NOT eligible
+    # ─────────────────────────────────────────────────────────────────────────
+    safe_margin = 5000
+
+    df_safe = df_grid[df_grid["pred_closing_rank"] >= (data.user_rank + safe_margin)]
     df_likely = df_grid[
-        (df_grid["pred_closing_rank"] > (data.user_rank - 5000)) &
-        (df_grid["pred_closing_rank"] <= data.user_rank)
+        (df_grid["pred_closing_rank"] >= data.user_rank) &
+        (df_grid["pred_closing_rank"] < (data.user_rank + safe_margin))
     ]
 
     structured_json = {"Safe": [], "Likely": []}
@@ -533,11 +565,18 @@ def predict_comedk(data: ComedkInputData):
     pred_ranks = np.expm1(log_preds).astype(int)
     raw_rows["pred_closing_rank"] = pred_ranks
 
-    df_safe = raw_rows[raw_rows["pred_closing_rank"] > data.user_rank]
-    lower_bound = max(1, data.user_rank - 1000)
+    # ── Rank logic ────────────────────────────────────────────────────────────
+    # student_rank <= cutoff → eligible
+    # Safe  : cutoff > user_rank + safety margin (comfortable room)
+    # Likely: cutoff >= user_rank AND cutoff <= user_rank + safety margin (tight)
+    # Exclude: cutoff < user_rank → NOT eligible
+    # ─────────────────────────────────────────────────────────────────────────
+    safe_margin = 1000
+
+    df_safe = raw_rows[raw_rows["pred_closing_rank"] >= (data.user_rank + safe_margin)]
     df_likely = raw_rows[
-        (raw_rows["pred_closing_rank"] >= lower_bound) &
-        (raw_rows["pred_closing_rank"] <= data.user_rank)
+        (raw_rows["pred_closing_rank"] >= data.user_rank) &
+        (raw_rows["pred_closing_rank"] < (data.user_rank + safe_margin))
     ]
 
     structured_json = {"Safe": [], "Likely": []}
