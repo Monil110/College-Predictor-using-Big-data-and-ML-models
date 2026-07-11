@@ -50,7 +50,8 @@ function App() {
       setLastDomain(domain)
 
       let endpoint = '/predict'
-      if (domain === 'NEET')        endpoint = '/predict/neet'
+      if (domain === 'NEET_UG')     endpoint = '/predict/neet'
+      else if (domain === 'NEET_PG') endpoint = '/predict/neet_pg'
       else if (domain === 'KCET')   endpoint = '/predict/kcet'
       else if (domain === 'COMEDK') endpoint = '/predict/comedk'
 
@@ -61,6 +62,7 @@ function App() {
         setApiError(responseData.error || 'Prediction failed. Please try again.')
         setResults(null)
       } else {
+        // All endpoints now return the same shape: { source, data: { Safe: [], Likely: [] } }
         setResults(responseData.data)
       }
     } catch (error) {
@@ -93,8 +95,8 @@ function App() {
 
         {/* ── Hero Header ── */}
         <header className="hero-header">
-          <div className="logo-badge">
-            <span className="logo-icon">🎯</span>
+          <div className="logo-img-wrap">
+            <img src="/logo.png" alt="AdmitSense Logo" className="logo-img" />
           </div>
           <h1 className="hero-title">
             Admit<span className="hero-accent">Sense</span>
@@ -107,7 +109,7 @@ function App() {
           {/* Stats row */}
           <div className="stats-row">
             <div className="stat-item">
-              <span className="stat-number">4</span>
+              <span className="stat-number">5</span>
               <span className="stat-label">Exams Covered</span>
             </div>
             <div className="stat-divider" />
@@ -153,7 +155,6 @@ function App() {
           </div>
         )}
 
-        {/* ── Results ── */}
         {!isLoading && results && !apiError && (
           <ResultsTable results={results} domain={lastDomain} />
         )}

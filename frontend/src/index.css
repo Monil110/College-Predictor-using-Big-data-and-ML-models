@@ -101,18 +101,21 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.logo-badge {
+.logo-img-wrap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 72px; height: 72px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(129,140,248,0.2));
-  border: 1px solid rgba(56,189,248,0.3);
   margin-bottom: 20px;
-  box-shadow: 0 0 40px rgba(56,189,248,0.15);
 }
-.logo-icon { font-size: 2rem; }
+.logo-img {
+  width: 220px;
+  height: auto;
+  border-radius: 28px;
+  display: block;
+  /* subtle glow that matches the brand colours */
+  filter: drop-shadow(0 0 24px rgba(56, 189, 248, 0.22))
+          drop-shadow(0 8px 32px rgba(0, 0, 0, 0.35));
+}
 
 .hero-title {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -195,7 +198,7 @@ body {
 /* Domain selector */
 .domain-selector {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
   margin-bottom: 32px;
   padding-bottom: 28px;
@@ -690,8 +693,9 @@ select.field-input option { background: #0f172a; color: var(--text); }
   .stats-row   { padding: 8px 16px; }
   .stat-item   { padding: 0 12px; }
   .form-card   { padding: 22px 18px; }
-  .domain-selector { grid-template-columns: repeat(2, 1fr); }
+  .domain-selector { grid-template-columns: repeat(3, 1fr); }
   .domain-btn-desc { display: none; }
+  .logo-img    { width: 160px; }
   .results-card { padding: 20px 16px; }
   .results-topbar { flex-direction: column; align-items: flex-start; }
   .export-btn  { width: 100%; justify-content: center; }

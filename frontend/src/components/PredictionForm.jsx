@@ -15,16 +15,18 @@ function validateRank(rawValue, label, max) {
 const RANK_LIMITS = {
   JEE_ADVANCED: 200000,
   JEE_MAIN: 1200000,
-  NEET: 2000000,
+  NEET_UG: 2000000,
+  NEET_PG: 200000,
   KCET: 200000,
   COMEDK: 200000,
 };
 
 const DOMAINS = [
-  { value: 'JEE',    label: 'JEE',    icon: '⚙️',  desc: 'IITs / NITs / IIITs' },
-  { value: 'KCET',   label: 'KCET',   icon: '🏛️',  desc: 'Karnataka Engineering' },
-  { value: 'COMEDK', label: 'COMEDK', icon: '🎓',  desc: 'Karnataka Private' },
-  { value: 'NEET',   label: 'NEET',   icon: '🩺',  desc: 'Medical Colleges' },
+  { value: 'JEE',     label: 'JEE',      icon: '⚙️',  desc: 'IITs / NITs / IIITs' },
+  { value: 'NEET_UG', label: 'NEET UG',  icon: '🩺',  desc: 'MBBS / BDS Colleges' },
+  { value: 'NEET_PG', label: 'NEET PG',  icon: '🏥',  desc: 'PG Medical Colleges' },
+  { value: 'KCET',    label: 'KCET',     icon: '🏛️',  desc: 'Karnataka Engineering' },
+  { value: 'COMEDK',  label: 'COMEDK',   icon: '🎓',  desc: 'Karnataka Private' },
 ];
 
 const PredictionForm = ({ onPredict, isLoading }) => {
@@ -34,7 +36,8 @@ const PredictionForm = ({ onPredict, isLoading }) => {
   const [jeeData, setJeeData] = useState({
     user_rank: '', exam_type: 'JEE Advanced', category: 'GEN', quota: 'AI', pool: 'Gender-Neutral',
   });
-  const [neetData, setNeetData] = useState({ user_rank: '', category: 'OPEN SEAT' });
+  const [neetUgData, setNeetUgData] = useState({ user_rank: '', category: 'OPEN SEAT' });
+  const [neetPgData, setNeetPgData] = useState({ user_rank: '', category: 'GM' });
   const [kcetData, setKcetData] = useState({
     user_rank: '', category: 'GM', base_category: 'GM', quota: 'General', region: 'General',
   });
@@ -53,8 +56,10 @@ const PredictionForm = ({ onPredict, isLoading }) => {
     if (domain === 'JEE') {
       rawRank = jeeData.user_rank; rankLabel = 'JEE Rank';
       rankMax = jeeData.exam_type === 'JEE Advanced' ? RANK_LIMITS.JEE_ADVANCED : RANK_LIMITS.JEE_MAIN;
-    } else if (domain === 'NEET') {
-      rawRank = neetData.user_rank; rankLabel = 'NEET Rank'; rankMax = RANK_LIMITS.NEET;
+    } else if (domain === 'NEET_UG') {
+      rawRank = neetUgData.user_rank; rankLabel = 'NEET UG Rank'; rankMax = RANK_LIMITS.NEET_UG;
+    } else if (domain === 'NEET_PG') {
+      rawRank = neetPgData.user_rank; rankLabel = 'NEET PG Rank'; rankMax = RANK_LIMITS.NEET_PG;
     } else if (domain === 'KCET') {
       rawRank = kcetData.user_rank; rankLabel = 'KCET Rank'; rankMax = RANK_LIMITS.KCET;
     } else {
@@ -66,10 +71,16 @@ const PredictionForm = ({ onPredict, isLoading }) => {
     setRankError('');
     const rank = parseInt(String(rawRank).trim(), 10);
 
-    if (domain === 'JEE')         onPredict({ ...jeeData,    user_rank: rank, domain: 'JEE' });
-    else if (domain === 'KCET')   onPredict({ ...kcetData,   user_rank: rank, domain: 'KCET' });
-    else if (domain === 'COMEDK') onPredict({ ...comedkData, user_rank: rank, domain: 'COMEDK' });
-    else                          onPredict({ ...neetData, candidate_rank: rank, domain: 'NEET' });
+    if (domain === 'JEE')
+      onPredict({ ...jeeData, user_rank: rank, domain: 'JEE' });
+    else if (domain === 'NEET_UG')
+      onPredict({ candidate_rank: rank, category: neetUgData.category, domain: 'NEET_UG' });
+    else if (domain === 'NEET_PG')
+      onPredict({ candidate_rank: rank, category: neetPgData.category, domain: 'NEET_PG' });
+    else if (domain === 'KCET')
+      onPredict({ ...kcetData, user_rank: rank, domain: 'KCET' });
+    else
+      onPredict({ ...comedkData, user_rank: rank, domain: 'COMEDK' });
   };
 
   return (
@@ -138,26 +149,95 @@ const PredictionForm = ({ onPredict, isLoading }) => {
             </div>
           </>}
 
-          {/* ── NEET ── */}
-          {domain === 'NEET' && <>
+          {/* ── NEET UG ── */}
+          {domain === 'NEET_UG' && <>
             <div className="field-group">
-              <label className="field-label">Your NEET Rank</label>
+              <label className="field-label">Your NEET UG Rank</label>
               <input
                 type="text" inputMode="numeric" name="user_rank"
-                value={neetData.user_rank} onChange={mkChange(setNeetData, neetData)}
+                value={neetUgData.user_rank} onChange={mkChange(setNeetUgData, neetUgData)}
                 placeholder="e.g. 5000" className={`field-input ${rankError ? 'field-input-error' : ''}`}
               />
               {rankError && <span className="field-error-msg">⚠ {rankError}</span>}
             </div>
             <div className="field-group">
               <label className="field-label">Seat Category</label>
-              <select name="category" value={neetData.category} onChange={mkChange(setNeetData, neetData)} className="field-input">
-                <option value="OPEN SEAT">OPEN SEAT</option>
-                <option value="ALL INDIA">ALL INDIA</option>
-                <option value="DEEMED/PAID">DEEMED / PAID</option>
-                <option value="EMPLOYEES">EMPLOYEE QUOTA / ESIC</option>
-                <option value="DELHI">DELHI REGIONAL</option>
-                <option value="MUSLIM">MINORITY (MUSLIM)</option>
+              <select name="category" value={neetUgData.category} onChange={mkChange(setNeetUgData, neetUgData)} className="field-input">
+                <option value="OPEN SEAT">Open Seat (All India Open)</option>
+                <option value="ALL INDIA">All India Quota</option>
+                <option value="DEEMED/PAID">Deemed / Paid Seat</option>
+                <option value="EMPLOYEES">Employees / ESIC Quota</option>
+                <option value="DELHI">Delhi Regional</option>
+                <option value="MUSLIM">Minority (Muslim)</option>
+                <option value="NON-RESIDENT">NRI / Non-Resident</option>
+              </select>
+            </div>
+          </>}
+
+          {/* ── NEET PG ── */}
+          {domain === 'NEET_PG' && <>
+            <div className="field-group">
+              <label className="field-label">Your NEET PG Rank</label>
+              <input
+                type="text" inputMode="numeric" name="user_rank"
+                value={neetPgData.user_rank} onChange={mkChange(setNeetPgData, neetPgData)}
+                placeholder="e.g. 1500" className={`field-input ${rankError ? 'field-input-error' : ''}`}
+              />
+              {rankError && <span className="field-error-msg">⚠ {rankError}</span>}
+            </div>
+            <div className="field-group">
+              <label className="field-label">Seat Category</label>
+              <select name="category" value={neetPgData.category} onChange={mkChange(setNeetPgData, neetPgData)} className="field-input">
+                <optgroup label="General Merit">
+                  <option value="GM">GM — General Merit</option>
+                  <option value="GMH">GMH — General Merit (HK Region)</option>
+                  <option value="GMP">GMP — General Merit (PH)</option>
+                  <option value="GMPH">GMPH — General Merit (PH, HK)</option>
+                  <option value="OPN">OPN — Open (Deemed/Paid)</option>
+                </optgroup>
+                <optgroup label="OBC Categories">
+                  <option value="1G">1G — Category 1</option>
+                  <option value="1H">1H — Category 1 (HK)</option>
+                  <option value="2AG">2AG — Category 2A</option>
+                  <option value="2AH">2AH — Category 2A (HK)</option>
+                  <option value="2BG">2BG — Category 2B</option>
+                  <option value="2BH">2BH — Category 2B (HK)</option>
+                  <option value="3AG">3AG — Category 3A</option>
+                  <option value="3AH">3AH — Category 3A (HK)</option>
+                  <option value="3BG">3BG — Category 3B</option>
+                  <option value="3BH">3BH — Category 3B (HK)</option>
+                </optgroup>
+                <optgroup label="SC / ST">
+                  <option value="S1G">S1G — SC (Left Hand)</option>
+                  <option value="S1H">S1H — SC (Left Hand, HK)</option>
+                  <option value="S2G">S2G — SC (Right Hand)</option>
+                  <option value="S2H">S2H — SC (Right Hand, HK)</option>
+                  <option value="S3G">S3G — SC (Others)</option>
+                  <option value="S3H">S3H — SC (Others, HK)</option>
+                  <option value="STG">STG — ST</option>
+                  <option value="STH">STH — ST (HK)</option>
+                </optgroup>
+                <optgroup label="Minority / Management / NRI">
+                  <option value="MM">MM — Muslim Minority</option>
+                  <option value="MMH">MMH — Muslim Minority (HK)</option>
+                  <option value="MC">MC — Christian Minority</option>
+                  <option value="MU">MU — Urdu Minority</option>
+                  <option value="MA">MA — Anglo-Indian Minority</option>
+                  <option value="MNG">MNG — Lingayat Minority</option>
+                  <option value="ME">ME — Management / Paid</option>
+                  <option value="MEH">MEH — Management / Paid (HK)</option>
+                  <option value="NRI">NRI — Non-Resident Indian</option>
+                </optgroup>
+                <optgroup label="Postgraduate / Special">
+                  <option value="PGM">PGM — PG Management</option>
+                  <option value="PGMH">PGMH — PG Management (HK)</option>
+                  <option value="P1G">P1G — PG Category 1</option>
+                  <option value="P2AG">P2AG — PG Category 2A</option>
+                  <option value="PSTG">PSTG — PG ST</option>
+                  <option value="RC1">RC1 — Rural Candidate 1</option>
+                  <option value="RC2">RC2 — Rural Candidate 2</option>
+                  <option value="RC3">RC3 — Rural Candidate 3</option>
+                </optgroup>
               </select>
             </div>
           </>}

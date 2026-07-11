@@ -2,6 +2,20 @@ import React, { useState, useMemo } from 'react';
 
 const APP_NAME = 'AdmitSense';
 
+// ─── Column config by domain ─────────────────────────────────────────────────
+function getCutoffLabel(domain) {
+  if (domain === 'NEET_PG') return 'Match %';
+  return 'Predicted Cutoff';
+}
+
+function formatCutoff(item, domain) {
+  if (domain === 'NEET_PG') {
+    // predicted_cutoff was stored as Math.round(probability * 100) in App.jsx
+    return `${item.predicted_cutoff}%`;
+  }
+  return (item.predicted_cutoff || 0).toLocaleString();
+}
+
 // ─── PDF Export ───────────────────────────────────────────────────────────────
 function exportToPDF(results, domain) {
   const allRows = [
@@ -14,7 +28,7 @@ function exportToPDF(results, domain) {
       <td>${i + 1}</td>
       <td><strong>${item.institute || '—'}</strong></td>
       <td>${item.program || item.course || '—'}</td>
-      <td style="font-weight:600;color:#0369a1">${(item.predicted_cutoff || 0).toLocaleString()}</td>
+      <td style="font-weight:600;color:#0369a1">${typeof item.predicted_cutoff === 'number' ? item.predicted_cutoff.toLocaleString() : (item.predicted_cutoff || '—')}</td>
       <td><span class="tier-badge ${item.tier.toLowerCase()}">${item.tier}</span></td>
     </tr>`).join('');
 
@@ -72,9 +86,19 @@ function exportToPDF(results, domain) {
   setTimeout(() => win.print(), 500);
 }
 
-// ─── Sort ascending by cutoff (prestigious first) ─────────────────────────────
-function sortByPrestige(arr) {
-  return [...arr].sort((a, b) => (a.predicted_cutoff || 0) - (b.predicted_cutoff || 0));
+// ─── Sort helpers ─────────────────────────────────────────────────────────────
+// Rank-based exams (JEE / NEET UG / KCET / COMEDK):
+//   ascending cutoff — most lenient (highest cutoff rank) first
+// NEET PG:
+//   descending probability % — highest match confidence first
+//   (backend already sorts this way; we preserve it by NOT re-sorting)
+function sortResults(arr, domain) {
+  if (domain === 'NEET_PG') {
+    // Backend sends descending by prob — preserve that order
+    return [...arr];
+  }
+  // All rank-based exams: ascending cutoff (most lenient = safest first)
+  return [...arr].sort((a, b) => (b.predicted_cutoff || 0) - (a.predicted_cutoff || 0));
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -84,9 +108,16 @@ const ResultsTable = ({ results, domain }) => {
 
   if (!results) return null;
 
-  const safeList   = sortByPrestige(results.Safe   || []);
-  const likelyList = sortByPrestige(results.Likely || []);
+  const safeList   = sortResults(results.Safe   || [], domain);
+  const likelyList = sortResults(results.Likely || [], domain);
   const totalCount = safeList.length + likelyList.length;
+
+  const cutoffLabel = getCutoffLabel(domain);
+  const isNeetPg    = domain === 'NEET_PG';
+  // For NEET PG we show "Match %" not a rank, so tweak the footnote
+  const domainLabel = domain === 'NEET_UG' ? 'NEET UG'
+                    : domain === 'NEET_PG' ? 'NEET PG'
+                    : domain || 'Exam';
 
   if (totalCount === 0) {
     return (
@@ -128,10 +159,10 @@ const ResultsTable = ({ results, domain }) => {
           <span className="results-big-num">{totalCount}</span>
           <div>
             <p className="results-headline-title">Colleges Found</p>
-            {domain && <p className="results-headline-sub">{domain} · 2026 Predictions</p>}
+            {domain && <p className="results-headline-sub">{domainLabel} · 2026 Predictions</p>}
           </div>
         </div>
-        <button className="export-btn" onClick={() => exportToPDF(results, domain || 'Exam')}>
+        <button className="export-btn" onClick={() => exportToPDF(results, domainLabel)}>
           <span>📄</span> Export PDF
         </button>
       </div>
@@ -148,7 +179,9 @@ const ResultsTable = ({ results, domain }) => {
           <span className="tier-chip-label">Likely</span>
           <span className="tier-chip-count">{likelyList.length}</span>
         </div>
-        <p className="tier-legend">Lower cutoff rank = more prestigious college</p>
+        <p className="tier-legend">
+          {isNeetPg ? 'Higher match % = stronger prediction' : 'Higher cutoff rank = more lenient (safest) college'}
+        </p>
       </div>
 
       {/* ── Controls ── */}
@@ -194,7 +227,7 @@ const ResultsTable = ({ results, domain }) => {
                 <th className="col-num">#</th>
                 <th>Institute</th>
                 <th>Program / Branch</th>
-                <th className="col-cutoff">Predicted Cutoff</th>
+                <th className="col-cutoff">{cutoffLabel}</th>
                 {hasProb && <th className="col-prob">Eligibility</th>}
                 <th className="col-tier">Tier</th>
               </tr>
@@ -208,7 +241,7 @@ const ResultsTable = ({ results, domain }) => {
                     <td className="td-institute">{item.institute || '—'}</td>
                     <td className="td-program">{item.program || item.course || '—'}</td>
                     <td className="td-cutoff col-cutoff">
-                      {(item.predicted_cutoff || 0).toLocaleString()}
+                      {formatCutoff(item, domain)}
                     </td>
                     {hasProb && (
                       <td className="col-prob">
@@ -237,9 +270,10 @@ const ResultsTable = ({ results, domain }) => {
       </div>
 
       <p className="results-footnote">
-        ℹ️ Results sorted by predicted cutoff (ascending) — most prestigious colleges appear first.
-        Safe = cutoff comfortably above your rank · Likely = cutoff close to your rank.
-        All listed colleges are ones where your rank qualifies for admission.
+        {isNeetPg
+          ? 'ℹ️ Results show top predicted college + course allocations based on your rank and category. Match % = model confidence. Only Karnataka NEET PG data was used for training.'
+          : 'ℹ️ Results sorted by predicted cutoff — most lenient (safest) colleges appear first. Safe = cutoff comfortably above your rank · Likely = cutoff close to your rank. All listed colleges are ones where your rank qualifies for admission.'
+        }
       </p>
     </div>
   );
