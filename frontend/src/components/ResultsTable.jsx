@@ -9,7 +9,7 @@ function exportToPDF(results, domain) {
     ...(results.Likely || []).map(r => ({ ...r, tier: 'Likely' })),
   ];
 
-  const isNeetPg = domain === 'NEET PG';
+  const isNeetPg = domain === 'NEET_PG';
 
   const rows = allRows.map((item, i) => `
     <tr>
