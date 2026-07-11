@@ -2,20 +2,6 @@ import React, { useState, useMemo } from 'react';
 
 const APP_NAME = 'AdmitSense';
 
-// ─── Column config by domain ─────────────────────────────────────────────────
-function getCutoffLabel(domain) {
-  if (domain === 'NEET_PG') return 'Match %';
-  return 'Predicted Cutoff';
-}
-
-function formatCutoff(item, domain) {
-  if (domain === 'NEET_PG') {
-    // predicted_cutoff was stored as Math.round(probability * 100) in App.jsx
-    return `${item.predicted_cutoff}%`;
-  }
-  return (item.predicted_cutoff || 0).toLocaleString();
-}
-
 // ─── PDF Export ───────────────────────────────────────────────────────────────
 function exportToPDF(results, domain) {
   const allRows = [
@@ -23,12 +9,14 @@ function exportToPDF(results, domain) {
     ...(results.Likely || []).map(r => ({ ...r, tier: 'Likely' })),
   ];
 
+  const isNeetPg = domain === 'NEET PG';
+
   const rows = allRows.map((item, i) => `
     <tr>
       <td>${i + 1}</td>
       <td><strong>${item.institute || '—'}</strong></td>
       <td>${item.program || item.course || '—'}</td>
-      <td style="font-weight:600;color:#0369a1">${typeof item.predicted_cutoff === 'number' ? item.predicted_cutoff.toLocaleString() : (item.predicted_cutoff || '—')}</td>
+      ${!isNeetPg ? `<td style="font-weight:600;color:#0369a1">${(item.predicted_cutoff || 0).toLocaleString()}</td>` : ''}
       <td><span class="tier-badge ${item.tier.toLowerCase()}">${item.tier}</span></td>
     </tr>`).join('');
 
@@ -71,7 +59,15 @@ function exportToPDF(results, domain) {
     <span class="chip chip-likely">⚡ Likely: ${(results.Likely || []).length}</span>
   </div>
   <table>
-    <thead><tr><th>#</th><th>Institute</th><th>Program / Branch</th><th>Predicted Cutoff</th><th>Tier</th></tr></thead>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Institute</th>
+        <th>Program / Branch</th>
+        ${!isNeetPg ? '<th>Predicted Cutoff</th>' : ''}
+        <th>Tier</th>
+      </tr>
+    </thead>
     <tbody>${rows}</tbody>
   </table>
   <p class="footer">${APP_NAME} · AI-Powered Admission Intelligence · Big Data &amp; ML</p>
@@ -87,17 +83,12 @@ function exportToPDF(results, domain) {
 }
 
 // ─── Sort helpers ─────────────────────────────────────────────────────────────
-// Rank-based exams (JEE / NEET UG / KCET / COMEDK):
-//   ascending cutoff — most lenient (highest cutoff rank) first
-// NEET PG:
-//   descending probability % — highest match confidence first
-//   (backend already sorts this way; we preserve it by NOT re-sorting)
 function sortResults(arr, domain) {
   if (domain === 'NEET_PG') {
-    // Backend sends descending by prob — preserve that order
+    // Backend already sorted by probability descending — preserve that order
     return [...arr];
   }
-  // All rank-based exams: ascending cutoff (most lenient = safest first)
+  // All rank-based exams: descending cutoff (most lenient = highest cutoff = safest first)
   return [...arr].sort((a, b) => (b.predicted_cutoff || 0) - (a.predicted_cutoff || 0));
 }
 
@@ -112,9 +103,7 @@ const ResultsTable = ({ results, domain }) => {
   const likelyList = sortResults(results.Likely || [], domain);
   const totalCount = safeList.length + likelyList.length;
 
-  const cutoffLabel = getCutoffLabel(domain);
-  const isNeetPg    = domain === 'NEET_PG';
-  // For NEET PG we show "Match %" not a rank, so tweak the footnote
+  const isNeetPg  = domain === 'NEET_PG';
   const domainLabel = domain === 'NEET_UG' ? 'NEET UG'
                     : domain === 'NEET_PG' ? 'NEET PG'
                     : domain || 'Exam';
@@ -148,8 +137,6 @@ const ResultsTable = ({ results, domain }) => {
     );
   }, [activeTab, search, safeList, likelyList]);
 
-  const hasProb = false; // eligibility_prob removed — rank-based filtering is the gate
-
   return (
     <div className="results-card">
 
@@ -180,7 +167,9 @@ const ResultsTable = ({ results, domain }) => {
           <span className="tier-chip-count">{likelyList.length}</span>
         </div>
         <p className="tier-legend">
-          {isNeetPg ? 'Higher match % = stronger prediction' : 'Higher cutoff rank = more lenient (safest) college'}
+          {isNeetPg
+            ? 'Safe = high likelihood · Likely = possible allocation'
+            : 'Higher cutoff rank = more lenient (safest) college'}
         </p>
       </div>
 
@@ -227,8 +216,7 @@ const ResultsTable = ({ results, domain }) => {
                 <th className="col-num">#</th>
                 <th>Institute</th>
                 <th>Program / Branch</th>
-                <th className="col-cutoff">{cutoffLabel}</th>
-                {hasProb && <th className="col-prob">Eligibility</th>}
+                {!isNeetPg && <th className="col-cutoff">Predicted Cutoff</th>}
                 <th className="col-tier">Tier</th>
               </tr>
             </thead>
@@ -240,22 +228,9 @@ const ResultsTable = ({ results, domain }) => {
                     <td className="col-num td-num">{idx + 1}</td>
                     <td className="td-institute">{item.institute || '—'}</td>
                     <td className="td-program">{item.program || item.course || '—'}</td>
-                    <td className="td-cutoff col-cutoff">
-                      {formatCutoff(item, domain)}
-                    </td>
-                    {hasProb && (
-                      <td className="col-prob">
-                        {item.eligibility_prob !== undefined ? (
-                          <div className="prob-wrap">
-                            <div className="prob-track">
-                              <div
-                                className="prob-fill"
-                                style={{ width: `${Math.round(item.eligibility_prob * 100)}%` }}
-                              />
-                            </div>
-                            <span className="prob-pct">{Math.round(item.eligibility_prob * 100)}%</span>
-                          </div>
-                        ) : '—'}
+                    {!isNeetPg && (
+                      <td className="td-cutoff col-cutoff">
+                        {(item.predicted_cutoff || 0).toLocaleString()}
                       </td>
                     )}
                     <td className="col-tier">
@@ -271,7 +246,7 @@ const ResultsTable = ({ results, domain }) => {
 
       <p className="results-footnote">
         {isNeetPg
-          ? 'ℹ️ Results show top predicted college + course allocations based on your rank and category. Match % = model confidence. Only Karnataka NEET PG data was used for training.'
+          ? 'ℹ️ Results show predicted college + course allocations based on your rank and category. Safe = high likelihood of allocation · Likely = possible. Only Karnataka NEET PG allotment data was used for training.'
           : 'ℹ️ Results sorted by predicted cutoff — most lenient (safest) colleges appear first. Safe = cutoff comfortably above your rank · Likely = cutoff close to your rank. All listed colleges are ones where your rank qualifies for admission.'
         }
       </p>

@@ -1,13 +1,34 @@
 import os
+import sys
 import json
 import pickle
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from catboost import CatBoostRegressor, CatBoostClassifier, Pool
+try:
+    from catboost import CatBoostRegressor, CatBoostClassifier, Pool
+    _catboost_available = True
+except ModuleNotFoundError:
+    print("[WARN] catboost not installed — JEE/KCET/COMEDK models will be disabled. Run: pip install catboost")
+    CatBoostRegressor = None   # type: ignore[assignment,misc]
+    CatBoostClassifier = None  # type: ignore[assignment,misc]
+    Pool = None                # type: ignore[assignment]
+    _catboost_available = False
 from pydantic import BaseModel, field_validator
-import redis
+try:
+    import redis as _redis_module
+    _redis_available = True
+except ModuleNotFoundError:
+    print("[WARN] redis not installed — caching disabled. Run: pip install redis")
+    _redis_module = None  # type: ignore[assignment]
+    _redis_available = False
+
+# ─── Make repo root importable ────────────────────────────────────────────────
+_BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR_FOR_IMPORT = os.path.dirname(_BACKEND_DIR)
+if _ROOT_DIR_FOR_IMPORT not in sys.path:
+    sys.path.insert(0, _ROOT_DIR_FOR_IMPORT)
 
 app = FastAPI(title="College Predictor API (Unified)")
 
@@ -34,6 +55,8 @@ def load_jee_parquet(path: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 try:
+    if not _catboost_available:
+        raise ImportError("catboost not installed")
     iit_model = CatBoostClassifier()
     iit_model.load_model(os.path.join(MODELS_DIR, "model_iit.cbm"))
     print("[SUCCESS] IIT model loaded")
@@ -42,6 +65,8 @@ except Exception as e:
     iit_model = None
 
 try:
+    if not _catboost_available:
+        raise ImportError("catboost not installed")
     nit_model = CatBoostClassifier()
     nit_model.load_model(os.path.join(MODELS_DIR, "model_nit.cbm"))
     print("[SUCCESS] NIT model loaded")
@@ -76,10 +101,25 @@ except Exception as e:
     print(f"[ERROR] NEET model load failed: {e}")
     neet_model, neet_encoders, neet_feature_cols = None, {}, []
 
+# ─── Load NEET PG Model (XGBoost multi-class — retrained for small file size) ──
+NEET_PG_MODELS_DIR = os.path.join(ROOT_DIR, "models", "neet_pg")
+
+try:
+    import joblib as _joblib
+    neet_pg_model       = _joblib.load(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_model.pkl"))
+    neet_pg_cat_enc     = _joblib.load(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_category_encoder.pkl"))
+    neet_pg_label_enc   = _joblib.load(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_label_encoder.pkl"))
+    print(f"[SUCCESS] NEET PG model loaded ({type(neet_pg_model).__name__})")
+except Exception as e:
+    print(f"[ERROR] NEET PG model load failed: {e}")
+    neet_pg_model, neet_pg_cat_enc, neet_pg_label_enc = None, None, None
+
 # ─── Load KCET Models ─────────────────────────────────────────────────────────
 KCET_MODELS_DIR = os.path.join(ROOT_DIR, "models", "kcet")
 
 try:
+    if not _catboost_available:
+        raise ImportError("catboost not installed")
     kcet_model = CatBoostRegressor()
     kcet_model.load_model(os.path.join(KCET_MODELS_DIR, "kcet_model.cbm"))
     with open(os.path.join(KCET_MODELS_DIR, "kcet_encoders.pkl"), "rb") as f:
@@ -95,6 +135,8 @@ except Exception as e:
 COMEDK_MODELS_DIR = os.path.join(ROOT_DIR, "models", "comedk")
 
 try:
+    if not _catboost_available:
+        raise ImportError("catboost not installed")
     comedk_model = CatBoostRegressor()
     comedk_model.load_model(os.path.join(COMEDK_MODELS_DIR, "comedk_model.cbm"))
     with open(os.path.join(COMEDK_MODELS_DIR, "encoders.pkl"), "rb") as f:
@@ -110,7 +152,9 @@ except Exception as e:
 
 # ─── Redis (optional) ─────────────────────────────────────────────────────────
 try:
-    r = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+    if not _redis_available or _redis_module is None:
+        raise ImportError("redis not installed")
+    r = _redis_module.Redis(host="localhost", port=6379, db=0, decode_responses=True)
     r.ping()
     print("[SUCCESS] Redis connected")
 except Exception as e:
@@ -148,6 +192,19 @@ class InputData(BaseModel):
 
 
 class NeetInputData(BaseModel):
+    candidate_rank: int
+    category: str
+
+    @field_validator("candidate_rank")
+    @classmethod
+    def rank_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError("candidate_rank must be greater than 0")
+        return v
+
+
+class NeetPGInputData(BaseModel):
+    """Input schema for the /predict/neet_pg endpoint."""
     candidate_rank: int
     category: str
 
@@ -238,11 +295,12 @@ def health():
     return {
         "status": "ok",
         "models": {
-            "iit":    iit_model is not None,
-            "nit":    nit_model is not None,
-            "neet":   neet_model is not None,
-            "kcet":   kcet_model is not None,
-            "comedk": comedk_model is not None,
+            "iit":     iit_model is not None,
+            "nit":     nit_model is not None,
+            "neet_ug": neet_model is not None,
+            "neet_pg": neet_pg_model is not None,
+            "kcet":    kcet_model is not None,
+            "comedk":  comedk_model is not None,
         },
         "dataset_loaded": not iit_features_df.empty,
         "redis": r is not None,
@@ -287,6 +345,8 @@ def predict_jee(data: InputData):
         X = prepare_jee_features(filtered, data.user_rank)
         cat_cols = [c for c in CATEGORICAL_FEATURES if c in X.columns]
 
+        if not _catboost_available or Pool is None:
+            return {"source": "error", "error": "catboost not installed. Run: pip install catboost"}
         pool_obj = Pool(X, cat_features=cat_cols)
         probs = model.predict_proba(pool_obj)[:, 1]
 
@@ -341,19 +401,130 @@ def predict_jee(data: InputData):
     return {"source": "model", "data": structured_json}
 
 
-# ─── Predict NEET ─────────────────────────────────────────────────────────────
+# ─── Predict NEET PG ──────────────────────────────────────────────────────────
+_NEET_PG_LABEL_SEP = "|||"
+
+@app.post("/predict/neet_pg")
+def predict_neet_pg(data: NeetPGInputData):
+    """
+    Predict NEET PG college + course allocations.
+    Uses XGBoost multi-class model (~8 MB) trained on Karnataka NEET PG data.
+
+    Tier logic (probability-based):
+      Safe   : probability >= 1%
+      Likely : probability >= 0.3% AND < 1%
+
+    Response shape
+    --------------
+    {
+        "source": "model",
+        "data": {
+            "Safe":   [{"institute": ..., "course": ..., "predicted_cutoff": <prob_pct>, "tier": "Safe"},   ...],
+            "Likely": [{"institute": ..., "course": ..., "predicted_cutoff": <prob_pct>, "tier": "Likely"}, ...]
+        }
+    }
+    """
+    validate_rank(data.candidate_rank, "NEET PG Rank", max_rank=200_000)
+
+    if neet_pg_model is None:
+        return {
+            "source": "error",
+            "error": "NEET PG model not loaded. Run _retrain_neet_pg.py first.",
+        }
+
+    # Redis cache key
+    cache_key = f"neet_pg3_{data.candidate_rank}_{data.category.upper()}"
+    if r:
+        cached = r.get(cache_key)
+        if cached:
+            return {"source": "cache", "data": json.loads(cached)}
+
+    # ── Encode category ───────────────────────────────────────────────────────
+    cat_upper  = str(data.category).strip().upper()
+    known_cats = list(neet_pg_cat_enc.classes_)
+    if cat_upper not in known_cats:
+        cat_upper = known_cats[0]
+
+    cat_encoded = int(neet_pg_cat_enc.transform([cat_upper])[0])
+    X_input     = np.array([[data.candidate_rank, cat_encoded]])
+
+    # ── Full probability vector over all 787 college+course labels ────────────
+    proba = neet_pg_model.predict_proba(X_input)[0]
+
+    SAFE_THRESHOLD   = 0.01    # ≥1%  → Safe
+    LIKELY_THRESHOLD = 0.003   # ≥0.3% → Likely
+
+    structured_json: dict = {"Safe": [], "Likely": []}
+
+    for idx, prob in enumerate(proba):
+        if prob < LIKELY_THRESHOLD:
+            continue
+
+        combined_label = neet_pg_label_enc.classes_[idx]
+        if _NEET_PG_LABEL_SEP in combined_label:
+            college, course = combined_label.split(_NEET_PG_LABEL_SEP, 1)
+        else:
+            college, course = combined_label, "Unknown"
+
+        course  = course.replace("\n", " ").strip()
+        college = college.strip()
+
+        prob_pct = round(float(prob) * 100, 2)
+
+        item = {
+            "institute":        college,
+            "course":           course,
+            "predicted_cutoff": prob_pct,
+            "tier":             "Safe" if prob >= SAFE_THRESHOLD else "Likely",
+        }
+        structured_json[item["tier"]].append(item)
+
+    # Sort each tier descending by probability (highest confidence first)
+    structured_json["Safe"].sort(key=lambda x: x["predicted_cutoff"], reverse=True)
+    structured_json["Likely"].sort(key=lambda x: x["predicted_cutoff"], reverse=True)
+
+    if r:
+        r.setex(cache_key, 3600, json.dumps(structured_json))
+
+    return {"source": "model", "data": structured_json}
+
+
+# ─── Predict NEET UG ──────────────────────────────────────────────────────────
+def _neet_ug_deduplicate(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    The NEET UG training data contains duplicate/truncated institute names
+    (e.g. 'JHALAWAR' and 'JHALAWAR MEDICAL COLLEGE,' both appear).
+    Keep only the longest name per predicted-cutoff group so the UI shows
+    clean, unambiguous names.  Within a tied cutoff bucket, the longest
+    string is the most complete name.
+    """
+    # Round cutoffs to the nearest 100 so near-identical predictions cluster
+    df = df.copy()
+    df["_bucket"] = (df["pred_closing_rank"] / 100).round() * 100
+
+    # Within each bucket keep the row with the longest institute name
+    df["_namelen"] = df["institute"].str.len()
+    df = (
+        df.sort_values("_namelen", ascending=False)
+          .drop_duplicates(subset=["_bucket"])
+          .drop(columns=["_bucket", "_namelen"])
+          .reset_index(drop=True)
+    )
+    return df
+
+
 @app.post("/predict/neet")
 def predict_neet(data: NeetInputData):
     validate_rank(data.candidate_rank, "NEET Rank", max_rank=2_000_000)
 
-    key = f"neet2_{data.candidate_rank}_{data.category}"
+    key = f"neet3_{data.candidate_rank}_{data.category}"
     if r:
         cached = r.get(key)
         if cached:
             return {"source": "cache", "data": json.loads(cached)}
 
     if neet_model is None:
-        return {"source": "error", "error": "NEET model not loaded. Check server logs."}
+        return {"source": "error", "error": "NEET UG model not loaded. Check server logs."}
 
     institutes = [i for i in neet_encoders.get("institute").classes_ if i != "__UNKNOWN__"]
     if not institutes:
@@ -377,23 +548,36 @@ def predict_neet(data: NeetInputData):
     df_raw["pred_closing_rank"] = pred_ranks
 
     # ── Rank logic ────────────────────────────────────────────────────────────
-    # student_rank <= cutoff → eligible (student rank is equal or better than cutoff)
-    # Safe  : cutoff > user_rank + safety margin (comfortable, lots of room)
-    # Likely: cutoff >= user_rank AND cutoff <= user_rank + safety margin (tight)
-    # Exclude: cutoff < user_rank → NOT eligible
+    # NEET UG: LOWER rank number = BETTER student.
+    # Cutoff = last (worst) rank admitted to that institute.
+    # A student qualifies when: student_rank <= cutoff_rank.
+    #
+    # Safe  : cutoff >= student_rank + safe_margin
+    #         → lots of headroom, very comfortable admission
+    # Likely: cutoff >= student_rank AND cutoff < student_rank + safe_margin
+    #         → student just makes the cut, borderline
+    # Excluded: cutoff < student_rank → student rank is worse → not eligible
+    #
+    # Sort: DESCENDING by cutoff so the most lenient (easiest-to-get-into)
+    # colleges appear first — these are the "safest bets" the user should see
+    # at the top.  Most-competitive (AIIMS Delhi, rank ~1) will appear last.
     # ─────────────────────────────────────────────────────────────────────────
-    safe_margin = 1500  # cutoff must be this much above user rank to be "Safe"
+    safe_margin = 1500
 
-    df_safe = df_raw[df_raw["pred_closing_rank"] >= (data.candidate_rank + safe_margin)]
+    df_safe = df_raw[df_raw["pred_closing_rank"] >= (data.candidate_rank + safe_margin)].copy()
     df_likely = df_raw[
         (df_raw["pred_closing_rank"] >= data.candidate_rank) &
         (df_raw["pred_closing_rank"] < (data.candidate_rank + safe_margin))
-    ]
+    ].copy()
+
+    # Deduplicate near-identical institute entries before building the response
+    df_safe   = _neet_ug_deduplicate(df_safe)
+    df_likely = _neet_ug_deduplicate(df_likely)
 
     structured_json = {"Safe": [], "Likely": []}
 
-    # Sort ascending: lower cutoff = more prestigious/competitive first
-    for _, row in df_safe.sort_values("pred_closing_rank", ascending=True).iterrows():
+    # Sort descending: highest cutoff (most lenient) first = safest colleges on top
+    for _, row in df_safe.sort_values("pred_closing_rank", ascending=False).iterrows():
         structured_json["Safe"].append({
             "institute":        row["institute"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
@@ -401,7 +585,7 @@ def predict_neet(data: NeetInputData):
             "course":           "MBBS",
         })
 
-    for _, row in df_likely.sort_values("pred_closing_rank", ascending=True).iterrows():
+    for _, row in df_likely.sort_values("pred_closing_rank", ascending=False).iterrows():
         structured_json["Likely"].append({
             "institute":        row["institute"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
