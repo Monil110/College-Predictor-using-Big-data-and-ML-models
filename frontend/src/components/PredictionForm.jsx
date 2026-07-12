@@ -23,10 +23,10 @@ const RANK_LIMITS = {
 
 const DOMAINS = [
   { value: 'JEE',     label: 'JEE',      icon: '⚙️',  desc: 'IITs / NITs / IIITs' },
-  { value: 'NEET_UG', label: 'NEET UG',  icon: '🩺',  desc: 'MBBS / BDS Colleges' },
-  { value: 'NEET_PG', label: 'NEET PG',  icon: '🏥',  desc: 'PG Medical Colleges' },
   { value: 'KCET',    label: 'KCET',     icon: '🏛️',  desc: 'Karnataka Engineering' },
   { value: 'COMEDK',  label: 'COMEDK',   icon: '🎓',  desc: 'Karnataka Private' },
+  { value: 'NEET_UG', label: 'NEET UG',  icon: '🩺',  desc: 'MBBS / BDS Colleges' },
+  { value: 'NEET_PG', label: 'NEET PG',  icon: '🏥',  desc: 'PG Medical Colleges' },
 ];
 
 const PredictionForm = ({ onPredict, isLoading }) => {
