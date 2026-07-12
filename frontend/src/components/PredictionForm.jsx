@@ -50,6 +50,16 @@ const PredictionForm = ({ onPredict, isLoading }) => {
     if (e.target.name === 'user_rank') setRankError('');
   };
 
+  // JEE Advanced (IITs) only has an "All India" quota; JEE Main (NITs) never
+  // has "All India" — it's Home/Other State. Reset quota when the exam mode
+  // changes so the two fields can't drift into a combination the backend
+  // (correctly) rejects.
+  const handleExamTypeChange = (e) => {
+    const exam_type = e.target.value;
+    const quota = exam_type === 'JEE Advanced' ? 'AI' : 'OS';
+    setJeeData({ ...jeeData, exam_type, quota });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     let rawRank, rankLabel, rankMax;
@@ -117,7 +127,7 @@ const PredictionForm = ({ onPredict, isLoading }) => {
             </div>
             <div className="field-group">
               <label className="field-label">Exam Mode</label>
-              <select name="exam_type" value={jeeData.exam_type} onChange={mkChange(setJeeData, jeeData)} className="field-input">
+              <select name="exam_type" value={jeeData.exam_type} onChange={handleExamTypeChange} className="field-input">
                 <option value="JEE Advanced">JEE Advanced (IITs)</option>
                 <option value="JEE Main">JEE Main (NITs &amp; IIITs)</option>
               </select>
@@ -134,11 +144,16 @@ const PredictionForm = ({ onPredict, isLoading }) => {
             </div>
             <div className="field-group">
               <label className="field-label">Quota</label>
-              <select name="quota" value={jeeData.quota} onChange={mkChange(setJeeData, jeeData)} className="field-input">
-                <option value="AI">All India</option>
-                <option value="OS">Other State</option>
-                <option value="HS">Home State</option>
-              </select>
+              {jeeData.exam_type === 'JEE Advanced' ? (
+                <select name="quota" value={jeeData.quota} onChange={mkChange(setJeeData, jeeData)} className="field-input">
+                  <option value="AI">All India</option>
+                </select>
+              ) : (
+                <select name="quota" value={jeeData.quota} onChange={mkChange(setJeeData, jeeData)} className="field-input">
+                  <option value="OS">Other State</option>
+                  <option value="HS">Home State</option>
+                </select>
+              )}
             </div>
             <div className="field-group">
               <label className="field-label">Gender Pool</label>

@@ -27,7 +27,20 @@ CAT_COLS = [
     "region",
 ]
 
-NUM_COLS = ["year"]
+# Historical aggregate features (see spark/kcet_features.py) — without these,
+# the model only has 6 categorical columns to learn ~2,820 college+course
+# combos from, most of which appear in only 1-2 of the 3 available years.
+# It ends up regressing toward the dataset's global mean instead of learning
+# real per-college/per-course cutoffs (verified: median error ~15,000 ranks,
+# only 2.7% of predictions within +-500 of the true historical value).
+NUM_COLS = [
+    "year",
+    "prev_year_closing_rank",
+    "closing_rank_mean", "closing_rank_std",
+    "closing_rank_min", "closing_rank_max",
+    "rank_trend", "years_available", "latest_year", "earliest_year",
+    "college_course_avg_rank", "college_avg_rank", "category_avg_rank",
+]
 
 TARGET = "closing_rank"
 

@@ -39,11 +39,13 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState(null)
   const [lastDomain, setLastDomain] = useState(null)
+  const [resultNote, setResultNote] = useState(null)
 
   const handlePredict = async (data) => {
     setIsLoading(true)
     setResults(null)
     setApiError(null)
+    setResultNote(null)
 
     try {
       const { domain, ...payload } = data
@@ -64,6 +66,7 @@ function App() {
       } else {
         // All endpoints now return the same shape: { source, data: { Safe: [], Likely: [] } }
         setResults(responseData.data)
+        setResultNote(responseData.note || null)
       }
     } catch (error) {
       console.error('API Error:', error)
@@ -152,6 +155,13 @@ function App() {
               <p className="error-card-title">Something went wrong</p>
               <p className="error-card-msg">{apiError}</p>
             </div>
+          </div>
+        )}
+
+        {!isLoading && results && !apiError && resultNote && (
+          <div className="notice-card">
+            <span className="notice-card-icon">ℹ️</span>
+            <span>{resultNote}</span>
           </div>
         )}
 

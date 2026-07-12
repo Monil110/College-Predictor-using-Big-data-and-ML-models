@@ -101,6 +101,33 @@ except Exception as e:
     print(f"[ERROR] NEET model load failed: {e}")
     neet_model, neet_encoders, neet_feature_cols = None, {}, []
 
+# Institute -> actual course (MBBS / BDS / B.Sc. Nursing), derived from the
+# cleaned training data so dental/nursing colleges aren't mislabeled as MBBS.
+try:
+    with open(os.path.join(NEET_MODELS_DIR, "neet_institute_course.pkl"), "rb") as f:
+        neet_institute_course = pickle.load(f)
+    print(f"[SUCCESS] NEET institute->course map loaded ({len(neet_institute_course)} institutes)")
+except Exception as e:
+    print(f"[WARN] NEET institute->course map load failed: {e}")
+    neet_institute_course = {}
+
+
+def resolve_neet_ug_course(institute: str) -> str:
+    """Best-effort course for an institute: known mapping, else name-based heuristic."""
+    key = institute.strip().upper()
+    if key in neet_institute_course:
+        return neet_institute_course[key]
+    if "DENTAL" in key:
+        return "BDS"
+    if "NURSING" in key:
+        return "B.Sc. Nursing"
+    return "MBBS"
+
+
+NEET_UG_VALID_CATEGORIES = {
+    "OPEN SEAT", "ALL INDIA", "DEEMED/PAID", "EMPLOYEES", "DELHI", "MUSLIM", "NON-RESIDENT",
+}
+
 # ─── Load NEET PG Lookup Table (pure pickle, zero ML deps, ~0.3 MB) ───────────
 NEET_PG_MODELS_DIR = os.path.join(ROOT_DIR, "models", "neet_pg")
 
@@ -130,6 +157,16 @@ try:
 except Exception as e:
     print(f"[ERROR] KCET model load failed: {e}")
     kcet_model, kcet_encoders, kcet_feature_cols = None, {}, []
+
+# Real (college, course) pairs that actually exist — prevents predicting
+# cutoffs for combinations that were never offered (e.g. a college that
+# never ran a program the naive college x course cross-product would invent).
+try:
+    kcet_valid_combos = pd.read_pickle(os.path.join(KCET_MODELS_DIR, "kcet_valid_combos.pkl"))
+    print(f"[SUCCESS] KCET valid combos loaded ({len(kcet_valid_combos)} college+course pairs)")
+except Exception as e:
+    print(f"[WARN] KCET valid combos load failed: {e}")
+    kcet_valid_combos = pd.DataFrame(columns=["college_name", "course_name"])
 
 # ─── Load COMEDK Models ───────────────────────────────────────────────────────
 COMEDK_MODELS_DIR = os.path.join(ROOT_DIR, "models", "comedk")
@@ -174,6 +211,19 @@ def validate_rank(rank: int, field_name: str = "rank", max_rank: int = 5_000_000
             status_code=422,
             detail=f"{field_name} {rank} seems unrealistically high (max {max_rank:,}). Please verify."
         )
+
+
+def validate_choice(value: str, valid_choices: set, field_name: str) -> str:
+    """Raise HTTPException 422 if value (case-insensitive) isn't one of valid_choices.
+    Returns the canonical (correctly-cased) value on success."""
+    normalized = {c.upper(): c for c in valid_choices}
+    key = value.strip().upper()
+    if key not in normalized:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid {field_name} '{value}'. Valid options: {sorted(valid_choices)}."
+        )
+    return normalized[key]
 
 # ─── Input Schemas ────────────────────────────────────────────────────────────
 class InputData(BaseModel):
@@ -308,24 +358,45 @@ def health():
 
 
 # ─── Predict JEE ──────────────────────────────────────────────────────────────
+JEE_VALID_CATEGORIES = {
+    "GEN", "GEN-EWS", "GEN-PWD", "GEN-EWS-PWD",
+    "OBC-NCL", "OBC-NCL-PWD", "SC", "SC-PWD", "ST", "ST-PWD",
+}
+JEE_VALID_POOLS = {"Gender-Neutral", "Female-Only"}
+JEE_IIT_VALID_QUOTAS = {"AI"}
+JEE_NIT_VALID_QUOTAS = {"HS", "JK", "OS", "AP", "GO", "LA"}
+
+
 @app.post("/predict")
 def predict_jee(data: InputData):
     validate_rank(data.user_rank, "JEE Rank", max_rank=1_500_000)
+
+    exam_type_lower = data.exam_type.strip().lower()
+    if "advanced" in exam_type_lower:
+        inst_type = "IIT"
+        model = iit_model
+        features_df = iit_features_df
+        valid_quotas = JEE_IIT_VALID_QUOTAS
+    elif "main" in exam_type_lower:
+        inst_type = "NIT"
+        model = nit_model
+        features_df = nit_features_df
+        valid_quotas = JEE_NIT_VALID_QUOTAS
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid exam_type '{data.exam_type}'. Expected 'JEE Advanced' or 'JEE Main'."
+        )
+
+    data.category = validate_choice(data.category, JEE_VALID_CATEGORIES, "category")
+    data.quota = validate_choice(data.quota, valid_quotas, "quota")
+    data.pool = validate_choice(data.pool, JEE_VALID_POOLS, "pool")
 
     key = f"jee3_{data.user_rank}_{data.exam_type}_{data.category}_{data.quota}_{data.pool}"
     if r:
         cached = r.get(key)
         if cached:
             return {"source": "cache", "data": json.loads(cached)}
-
-    if "advanced" in data.exam_type.lower():
-        inst_type = "IIT"
-        model = iit_model
-        features_df = iit_features_df
-    else:
-        inst_type = "NIT"
-        model = nit_model
-        features_df = nit_features_df
 
     if model is None:
         return {"source": "error", "error": f"{inst_type} model not loaded. Check server logs."}
@@ -402,7 +473,7 @@ def predict_jee(data: InputData):
 
 
 # ─── Predict NEET PG ──────────────────────────────────────────────────────────
-_NEET_PG_WINDOW = 3000   # ranks within this window above candidate rank → Likely
+_NEET_PG_SAFE_MARGIN = 3000   # closing rank this far above candidate rank → Safe
 
 @app.post("/predict/neet_pg")
 def predict_neet_pg(data: NeetPGInputData):
@@ -410,42 +481,64 @@ def predict_neet_pg(data: NeetPGInputData):
     Predict NEET PG college + course allocations using a pure lookup table.
     No ML library required — just pickle. Works on any Python version.
 
-    Tier logic (rank-based, from Karnataka NEET PG allotment data):
-      Safe   : allotment rank <= candidate rank
-      Likely : allotment rank in (candidate_rank, candidate_rank + 3000]
+    Each raw row is one historical candidate's actual allotted rank for a
+    specific (college, course, category) seat. A single college+course can
+    have multiple seats recorded at different ranks (e.g. 4 General Medicine
+    seats filled at ranks 7, 8, 26, 74) — the LAST (highest/worst) rank among
+    them is the true closing rank: the boundary a candidate's rank must clear
+    to have any chance at that program.
+
+    Eligibility: candidate_rank <= closing_rank (candidate's rank is at least
+    as good as the worst rank that historically got in).
+      Safe   : closing_rank >= candidate_rank + safe_margin (comfortable room)
+      Likely : closing_rank in [candidate_rank, candidate_rank + safe_margin)
+      Excluded: closing_rank < candidate_rank → not eligible
     """
     validate_rank(data.candidate_rank, "NEET PG Rank", max_rank=200_000)
 
     if neet_pg_lookup is None:
         return {"source": "error", "error": "NEET PG lookup not loaded. Check server logs."}
 
-    cache_key = f"neet_pg4_{data.candidate_rank}_{data.category.upper()}"
+    cache_key = f"neet_pg5_{data.candidate_rank}_{data.category.upper()}"
     if r:
         cached = r.get(cache_key)
         if cached:
             return {"source": "cache", "data": json.loads(cached)}
 
-    cat = data.category.strip().upper()
-    if cat not in neet_pg_known:
-        cat = "GM"
+    requested_cat = data.category.strip().upper()
+    cat = requested_cat if requested_cat in neet_pg_known else "GM"
+    note = None
+    if cat != requested_cat:
+        note = f"Unknown category '{data.category}' — showing General Merit (GM) results instead."
 
     def _run_lookup(lookup_rows, candidate_rank):
-        safe_seen, likely_seen = {}, {}
+        # Collapse multiple seats at the same (college, course) down to the
+        # true closing rank (the worst/highest rank that got in).
+        closing_rank = {}
         for rank, college, course in lookup_rows:
             key = (college, course)
-            if rank <= candidate_rank:
-                safe_seen[key] = {"institute": college, "course": course,
-                                  "predicted_cutoff": rank, "tier": "Safe"}
-            elif rank <= candidate_rank + _NEET_PG_WINDOW:
-                if key not in safe_seen:
-                    likely_seen[key] = {"institute": college, "course": course,
-                                        "predicted_cutoff": rank, "tier": "Likely"}
+            if rank > closing_rank.get(key, -1):
+                closing_rank[key] = rank
+
+        safe_seen, likely_seen = {}, {}
+        for (college, course), rank in closing_rank.items():
+            if rank < candidate_rank:
+                continue  # closing rank tighter than candidate's rank → not eligible
+            entry = {"institute": college, "course": course, "predicted_cutoff": rank}
+            if rank >= candidate_rank + _NEET_PG_SAFE_MARGIN:
+                entry["tier"] = "Safe"
+                safe_seen[(college, course)] = entry
+            else:
+                entry["tier"] = "Likely"
+                likely_seen[(college, course)] = entry
         return safe_seen, likely_seen
 
     safe_seen, likely_seen = _run_lookup(neet_pg_lookup[cat], data.candidate_rank)
 
     # Fallback to GM when category has no entries near this rank
     if not safe_seen and not likely_seen and cat != "GM":
+        cat = "GM"
+        note = f"No data found for category '{data.category}' near this rank — showing General Merit (GM) results instead."
         safe_seen, likely_seen = _run_lookup(neet_pg_lookup["GM"], data.candidate_rank)
 
     safe_list   = sorted(safe_seen.values(),   key=lambda x: x["predicted_cutoff"], reverse=True)
@@ -456,7 +549,10 @@ def predict_neet_pg(data: NeetPGInputData):
     if r:
         r.setex(cache_key, 3600, json.dumps(structured_json))
 
-    return {"source": "model", "data": structured_json}
+    result = {"source": "model", "data": structured_json}
+    if note:
+        result["note"] = note
+    return result
 
 
 # ─── Predict NEET UG ──────────────────────────────────────────────────────────
@@ -486,6 +582,7 @@ def _neet_ug_deduplicate(df: pd.DataFrame) -> pd.DataFrame:
 @app.post("/predict/neet")
 def predict_neet(data: NeetInputData):
     validate_rank(data.candidate_rank, "NEET Rank", max_rank=2_000_000)
+    data.category = validate_choice(data.category, NEET_UG_VALID_CATEGORIES, "category")
 
     key = f"neet3_{data.candidate_rank}_{data.category}"
     if r:
@@ -552,7 +649,7 @@ def predict_neet(data: NeetInputData):
             "institute":        row["institute"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
             "tier":             "Safe",
-            "course":           "MBBS",
+            "course":           resolve_neet_ug_course(row["institute"]),
         })
 
     for _, row in df_likely.sort_values("pred_closing_rank", ascending=False).iterrows():
@@ -560,7 +657,7 @@ def predict_neet(data: NeetInputData):
             "institute":        row["institute"],
             "predicted_cutoff": int(row["pred_closing_rank"]),
             "tier":             "Likely",
-            "course":           "MBBS",
+            "course":           resolve_neet_ug_course(row["institute"]),
         })
 
     if r:
@@ -570,9 +667,24 @@ def predict_neet(data: NeetInputData):
 
 
 # ─── Predict KCET ─────────────────────────────────────────────────────────────
+KCET_VALID_CATEGORIES = {
+    '1G', '1H', '1K', '1KH', '1R', '1RH', '2AG', '2AH', '2AK', '2AKH', '2AR', '2ARH',
+    '2BG', '2BH', '2BK', '2BKH', '2BR', '2BRH', '3AG', '3AH', '3AK', '3AKH', '3AR', '3ARH',
+    '3BG', '3BH', '3BK', '3BKH', '3BR', '3BRH', 'GM', 'GMH', 'GMK', 'GMKH', 'GMR', 'GMRH',
+    'SCG', 'SCH', 'SCK', 'SCKH', 'SCR', 'SCRH', 'STG', 'STH', 'STK', 'STKH', 'STR', 'STRH',
+}
+KCET_VALID_BASE_CATEGORIES = {'1', '2A', '2B', '3A', '3B', 'GM', 'SC', 'ST'}
+KCET_VALID_QUOTAS = {'GENERAL', 'KANNADA', 'RURAL'}
+KCET_VALID_REGIONS = {'GENERAL', 'HYDERABAD-KARNATAKA'}
+
+
 @app.post("/predict/kcet")
 def predict_kcet(data: KcetInputData):
     validate_rank(data.user_rank, "KCET Rank", max_rank=300_000)
+    data.category      = validate_choice(data.category, KCET_VALID_CATEGORIES, "category")
+    data.base_category = validate_choice(data.base_category, KCET_VALID_BASE_CATEGORIES, "base_category")
+    data.quota         = validate_choice(data.quota, KCET_VALID_QUOTAS, "quota")
+    data.region        = validate_choice(data.region, KCET_VALID_REGIONS, "region")
 
     key = f"kcet_{data.user_rank}_{data.category}_{data.base_category}_{data.quota}_{data.region}"
     if r:
@@ -583,15 +695,14 @@ def predict_kcet(data: KcetInputData):
     if kcet_model is None:
         return {"source": "error", "error": "KCET model not loaded. Check server logs."}
 
-    colleges = kcet_encoders.get("college_name", [])
-    courses  = kcet_encoders.get("course_name", [])
+    if kcet_valid_combos.empty:
+        return {"source": "error", "error": "No college/course combinations found. Check server logs."}
 
-    if not colleges or not courses:
-        return {"source": "error", "error": "No college/course encoding found in kcet_encoders."}
-
-    df_grid = pd.MultiIndex.from_product(
-        [colleges, courses], names=["college_name", "course_name"]
-    ).to_frame(index=False)
+    # Only predict for (college, course) pairs that actually exist — a full
+    # college x course cross-product would ask the model for cutoffs on
+    # combinations that were never offered, and it would happily extrapolate
+    # nonsense for them.
+    df_grid = kcet_valid_combos.copy()
 
     df_grid["category"]      = data.category.upper()
     df_grid["base_category"] = data.base_category.upper()
@@ -695,9 +806,13 @@ def build_comedk_prediction_df(encoders, feature_cols, lookup, category):
     return df[feature_cols], raw_rows
 
 
+COMEDK_VALID_CATEGORIES = {"GM", "KKR"}
+
+
 @app.post("/predict/comedk")
 def predict_comedk(data: ComedkInputData):
     validate_rank(data.user_rank, "COMEDK Rank", max_rank=200_000)
+    data.category = validate_choice(data.category, COMEDK_VALID_CATEGORIES, "category")
 
     key = f"comedk_{data.user_rank}_{data.category}"
     if r:

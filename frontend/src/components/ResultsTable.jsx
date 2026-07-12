@@ -4,19 +4,18 @@ const APP_NAME = 'AdmitSense';
 
 // ─── PDF Export ───────────────────────────────────────────────────────────────
 function exportToPDF(results, domain) {
+  const byCutoffAsc = (a, b) => (a.predicted_cutoff || 0) - (b.predicted_cutoff || 0);
   const allRows = [
-    ...(results.Safe   || []).map(r => ({ ...r, tier: 'Safe' })),
-    ...(results.Likely || []).map(r => ({ ...r, tier: 'Likely' })),
+    ...(results.Likely || []).map(r => ({ ...r, tier: 'Likely' })).sort(byCutoffAsc),
+    ...(results.Safe   || []).map(r => ({ ...r, tier: 'Safe' })).sort(byCutoffAsc),
   ];
-
-  const isNeetPg = domain === 'NEET_PG';
 
   const rows = allRows.map((item, i) => `
     <tr>
       <td>${i + 1}</td>
       <td><strong>${item.institute || '—'}</strong></td>
       <td>${item.program || item.course || '—'}</td>
-      ${!isNeetPg ? `<td style="font-weight:600;color:#0369a1">${(item.predicted_cutoff || 0).toLocaleString()}</td>` : ''}
+      <td style="font-weight:600;color:#0369a1">${(item.predicted_cutoff || 0).toLocaleString()}</td>
       <td><span class="tier-badge ${item.tier.toLowerCase()}">${item.tier}</span></td>
     </tr>`).join('');
 
@@ -64,7 +63,7 @@ function exportToPDF(results, domain) {
         <th>#</th>
         <th>Institute</th>
         <th>Program / Branch</th>
-        ${!isNeetPg ? '<th>Predicted Cutoff</th>' : ''}
+        <th>Predicted Cutoff</th>
         <th>Tier</th>
       </tr>
     </thead>
@@ -83,13 +82,11 @@ function exportToPDF(results, domain) {
 }
 
 // ─── Sort helpers ─────────────────────────────────────────────────────────────
-function sortResults(arr, domain) {
-  if (domain === 'NEET_PG') {
-    // Backend already sorted by probability descending — preserve that order
-    return [...arr];
-  }
-  // All rank-based exams: descending cutoff (most lenient = highest cutoff = safest first)
-  return [...arr].sort((a, b) => (b.predicted_cutoff || 0) - (a.predicted_cutoff || 0));
+// Ascending by predicted cutoff. Likely cutoffs are always below the Safe
+// threshold, so concatenating Likely then Safe (each ascending) reads as one
+// continuous ascending list — closest/tightest calls first, safest last.
+function sortResults(arr) {
+  return [...arr].sort((a, b) => (a.predicted_cutoff || 0) - (b.predicted_cutoff || 0));
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -99,8 +96,8 @@ const ResultsTable = ({ results, domain }) => {
 
   if (!results) return null;
 
-  const safeList   = sortResults(results.Safe   || [], domain);
-  const likelyList = sortResults(results.Likely || [], domain);
+  const safeList   = sortResults(results.Safe   || []);
+  const likelyList = sortResults(results.Likely || []);
   const totalCount = safeList.length + likelyList.length;
 
   const isNeetPg  = domain === 'NEET_PG';
@@ -124,8 +121,8 @@ const ResultsTable = ({ results, domain }) => {
       : activeTab === 'Likely'
         ? likelyList.map(r => ({ ...r, tier: 'Likely' }))
         : [
-            ...safeList.map(r => ({ ...r, tier: 'Safe' })),
             ...likelyList.map(r => ({ ...r, tier: 'Likely' })),
+            ...safeList.map(r => ({ ...r, tier: 'Safe' })),
           ];
 
     if (!search.trim()) return base;
@@ -168,7 +165,7 @@ const ResultsTable = ({ results, domain }) => {
         </div>
         <p className="tier-legend">
           {isNeetPg
-            ? 'Safe = high likelihood · Likely = possible allocation'
+            ? 'Safe = an equal-or-better rank was allotted this seat · Likely = within 3000 ranks above yours'
             : 'Higher cutoff rank = more lenient (safest) college'}
         </p>
       </div>
@@ -216,7 +213,7 @@ const ResultsTable = ({ results, domain }) => {
                 <th className="col-num">#</th>
                 <th>Institute</th>
                 <th>Program / Branch</th>
-                {!isNeetPg && <th className="col-cutoff">Predicted Cutoff</th>}
+                <th className="col-cutoff">Predicted Cutoff</th>
                 <th className="col-tier">Tier</th>
               </tr>
             </thead>
@@ -228,11 +225,9 @@ const ResultsTable = ({ results, domain }) => {
                     <td className="col-num td-num">{idx + 1}</td>
                     <td className="td-institute">{item.institute || '—'}</td>
                     <td className="td-program">{item.program || item.course || '—'}</td>
-                    {!isNeetPg && (
-                      <td className="td-cutoff col-cutoff">
-                        {(item.predicted_cutoff || 0).toLocaleString()}
-                      </td>
-                    )}
+                    <td className="td-cutoff col-cutoff">
+                      {(item.predicted_cutoff || 0).toLocaleString()}
+                    </td>
                     <td className="col-tier">
                       <span className={`tier-badge tier-${tier.toLowerCase()}`}>{tier}</span>
                     </td>
@@ -246,7 +241,7 @@ const ResultsTable = ({ results, domain }) => {
 
       <p className="results-footnote">
         {isNeetPg
-          ? 'ℹ️ Results show predicted college + course allocations based on your rank and category. Safe = high likelihood of allocation · Likely = possible. Only Karnataka NEET PG allotment data was used for training.'
+          ? 'ℹ️ Results show actual past allotment ranks for each college + course + category, from Karnataka NEET PG counselling data. Safe = a candidate with an equal-or-better rank was allotted this seat historically · Likely = the allotted rank was within 3000 of yours.'
           : 'ℹ️ Results sorted by predicted cutoff — most lenient (safest) colleges appear first. Safe = cutoff comfortably above your rank · Likely = cutoff close to your rank. All listed colleges are ones where your rank qualifies for admission.'
         }
       </p>

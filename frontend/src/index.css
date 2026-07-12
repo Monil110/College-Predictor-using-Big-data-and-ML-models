@@ -380,6 +380,23 @@ select.field-input option { background: #0f172a; color: var(--text); }
 .error-card-title   { font-size: 0.95rem; font-weight: 700; color: var(--danger); margin-bottom: 4px; }
 .error-card-msg     { font-size: 0.88rem; color: var(--text-soft); line-height: 1.5; }
 
+/* ── Notice Card (informational, non-error) ── */
+.notice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--likely-bg);
+  border: 1px solid var(--likely-border);
+  border-radius: 14px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+  animation: fadeUp 0.4s ease both;
+}
+.notice-card-icon { font-size: 1.1rem; flex-shrink: 0; }
+
 /* ── Results Card ── */
 .results-card {
   background: var(--surface);
