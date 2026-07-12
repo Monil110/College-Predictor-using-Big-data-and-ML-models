@@ -101,38 +101,18 @@ except Exception as e:
     print(f"[ERROR] NEET model load failed: {e}")
     neet_model, neet_encoders, neet_feature_cols = None, {}, []
 
-# ─── Load NEET PG Model (XGBoost native format — version independent) ─────────
+# ─── Load NEET PG Lookup Table (pure pickle, zero ML deps, ~0.3 MB) ───────────
 NEET_PG_MODELS_DIR = os.path.join(ROOT_DIR, "models", "neet_pg")
 
 try:
-    import gzip as _gzip
-    import xgboost as _xgb
-
-    # Load booster from gzip-compressed JSON (version independent across Python/XGBoost versions)
-    _model_gz = os.path.join(NEET_PG_MODELS_DIR, "neet_pg_model.json.gz")
-    _tmp_path  = os.path.join(NEET_PG_MODELS_DIR, "_tmp_model_load.json")
-    with _gzip.open(_model_gz, "rb") as _gz:
-        with open(_tmp_path, "wb") as _tmp:
-            _tmp.write(_gz.read())
-    neet_pg_booster = _xgb.Booster()
-    neet_pg_booster.load_model(_tmp_path)
-    os.remove(_tmp_path)
-
-    # Load meta (n_classes) and encoders
-    with open(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_meta.pkl"), "rb") as f:
-        _meta = pickle.load(f)
-    neet_pg_n_classes = _meta["n_classes"]
-
-    with open(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_category_encoder.pkl"), "rb") as f:
-        neet_pg_cat_enc = pickle.load(f)
-    with open(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_label_encoder.pkl"), "rb") as f:
-        neet_pg_label_enc = pickle.load(f)
-
-    neet_pg_model = neet_pg_booster  # keep variable name consistent with endpoint
-    print(f"[SUCCESS] NEET PG model loaded (XGBoost Booster, {neet_pg_n_classes} classes)")
+    with open(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_lookup.pkl"), "rb") as f:
+        _neet_pg_data    = pickle.load(f)
+    neet_pg_lookup   = _neet_pg_data["lookup"]      # {cat -> [(rank, college, course)]}
+    neet_pg_known    = set(_neet_pg_data["known_cats"])
+    print(f"[SUCCESS] NEET PG lookup loaded ({len(neet_pg_lookup)} categories)")
 except Exception as e:
-    print(f"[ERROR] NEET PG model load failed: {e}")
-    neet_pg_model, neet_pg_cat_enc, neet_pg_label_enc, neet_pg_n_classes = None, None, None, 0
+    print(f"[ERROR] NEET PG lookup load failed: {e}")
+    neet_pg_lookup, neet_pg_known = None, set()
 
 # ─── Load KCET Models ─────────────────────────────────────────────────────────
 KCET_MODELS_DIR = os.path.join(ROOT_DIR, "models", "kcet")
@@ -318,7 +298,7 @@ def health():
             "iit":     iit_model is not None,
             "nit":     nit_model is not None,
             "neet_ug": neet_model is not None,
-            "neet_pg": neet_pg_model is not None,
+            "neet_pg": neet_pg_lookup is not None,
             "kcet":    kcet_model is not None,
             "comedk":  comedk_model is not None,
         },
@@ -422,89 +402,56 @@ def predict_jee(data: InputData):
 
 
 # ─── Predict NEET PG ──────────────────────────────────────────────────────────
-_NEET_PG_LABEL_SEP = "|||"
+_NEET_PG_WINDOW = 3000   # ranks within this window above candidate rank → Likely
 
 @app.post("/predict/neet_pg")
 def predict_neet_pg(data: NeetPGInputData):
     """
-    Predict NEET PG college + course allocations.
-    Uses XGBoost multi-class model (~8 MB) trained on Karnataka NEET PG data.
+    Predict NEET PG college + course allocations using a pure lookup table.
+    No ML library required — just pickle. Works on any Python version.
 
-    Tier logic (probability-based):
-      Safe   : probability >= 1%
-      Likely : probability >= 0.3% AND < 1%
-
-    Response shape
-    --------------
-    {
-        "source": "model",
-        "data": {
-            "Safe":   [{"institute": ..., "course": ..., "predicted_cutoff": <prob_pct>, "tier": "Safe"},   ...],
-            "Likely": [{"institute": ..., "course": ..., "predicted_cutoff": <prob_pct>, "tier": "Likely"}, ...]
-        }
-    }
+    Tier logic (rank-based, from Karnataka NEET PG allotment data):
+      Safe   : allotment rank <= candidate rank
+      Likely : allotment rank in (candidate_rank, candidate_rank + 3000]
     """
     validate_rank(data.candidate_rank, "NEET PG Rank", max_rank=200_000)
 
-    if neet_pg_model is None:
-        return {
-            "source": "error",
-            "error": "NEET PG model not loaded. Run _retrain_neet_pg.py first.",
-        }
+    if neet_pg_lookup is None:
+        return {"source": "error", "error": "NEET PG lookup not loaded. Check server logs."}
 
-    # Redis cache key
-    cache_key = f"neet_pg3_{data.candidate_rank}_{data.category.upper()}"
+    cache_key = f"neet_pg4_{data.candidate_rank}_{data.category.upper()}"
     if r:
         cached = r.get(cache_key)
         if cached:
             return {"source": "cache", "data": json.loads(cached)}
 
-    # ── Encode category ───────────────────────────────────────────────────────
-    cat_upper  = str(data.category).strip().upper()
-    known_cats = list(neet_pg_cat_enc.classes_)
-    if cat_upper not in known_cats:
-        cat_upper = known_cats[0]
+    cat = data.category.strip().upper()
+    if cat not in neet_pg_known:
+        cat = "GM"
 
-    cat_encoded = int(neet_pg_cat_enc.transform([cat_upper])[0])
+    def _run_lookup(lookup_rows, candidate_rank):
+        safe_seen, likely_seen = {}, {}
+        for rank, college, course in lookup_rows:
+            key = (college, course)
+            if rank <= candidate_rank:
+                safe_seen[key] = {"institute": college, "course": course,
+                                  "predicted_cutoff": rank, "tier": "Safe"}
+            elif rank <= candidate_rank + _NEET_PG_WINDOW:
+                if key not in safe_seen:
+                    likely_seen[key] = {"institute": college, "course": course,
+                                        "predicted_cutoff": rank, "tier": "Likely"}
+        return safe_seen, likely_seen
 
-    # ── Full probability vector — use native Booster.predict() with DMatrix ──
-    import xgboost as _xgb_pred
-    dmat = _xgb_pred.DMatrix(np.array([[data.candidate_rank, cat_encoded]]))
-    # For multi:softprob, booster.predict() returns flat array of shape (1 * n_classes,)
-    raw_proba = neet_pg_model.predict(dmat)
-    proba = raw_proba.reshape(-1)  # shape: (n_classes,)
+    safe_seen, likely_seen = _run_lookup(neet_pg_lookup[cat], data.candidate_rank)
 
-    SAFE_THRESHOLD   = 0.01    # ≥1%  → Safe
-    LIKELY_THRESHOLD = 0.003   # ≥0.3% → Likely
+    # Fallback to GM when category has no entries near this rank
+    if not safe_seen and not likely_seen and cat != "GM":
+        safe_seen, likely_seen = _run_lookup(neet_pg_lookup["GM"], data.candidate_rank)
 
-    structured_json: dict = {"Safe": [], "Likely": []}
+    safe_list   = sorted(safe_seen.values(),   key=lambda x: x["predicted_cutoff"], reverse=True)
+    likely_list = sorted(likely_seen.values(), key=lambda x: x["predicted_cutoff"])
 
-    for idx, prob in enumerate(proba):
-        if prob < LIKELY_THRESHOLD:
-            continue
-
-        combined_label = neet_pg_label_enc.classes_[idx]
-        if _NEET_PG_LABEL_SEP in combined_label:
-            college, course = combined_label.split(_NEET_PG_LABEL_SEP, 1)
-        else:
-            college, course = combined_label, "Unknown"
-
-        course  = course.replace("\n", " ").strip()
-        college = college.strip()
-
-        prob_pct = round(float(prob) * 100, 2)
-
-        item = {
-            "institute":        college,
-            "course":           course,
-            "predicted_cutoff": prob_pct,
-            "tier":             "Safe" if prob >= SAFE_THRESHOLD else "Likely",
-        }
-        structured_json[item["tier"]].append(item)
-
-    # Sort each tier descending by probability (highest confidence first)
-    structured_json["Safe"].sort(key=lambda x: x["predicted_cutoff"], reverse=True)
-    structured_json["Likely"].sort(key=lambda x: x["predicted_cutoff"], reverse=True)
+    structured_json = {"Safe": safe_list, "Likely": likely_list}
 
     if r:
         r.setex(cache_key, 3600, json.dumps(structured_json))
