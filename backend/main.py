@@ -101,18 +101,38 @@ except Exception as e:
     print(f"[ERROR] NEET model load failed: {e}")
     neet_model, neet_encoders, neet_feature_cols = None, {}, []
 
-# ─── Load NEET PG Model (XGBoost multi-class — retrained for small file size) ──
+# ─── Load NEET PG Model (XGBoost native format — version independent) ─────────
 NEET_PG_MODELS_DIR = os.path.join(ROOT_DIR, "models", "neet_pg")
 
 try:
-    import joblib as _joblib
-    neet_pg_model       = _joblib.load(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_model.pkl"))
-    neet_pg_cat_enc     = _joblib.load(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_category_encoder.pkl"))
-    neet_pg_label_enc   = _joblib.load(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_label_encoder.pkl"))
-    print(f"[SUCCESS] NEET PG model loaded ({type(neet_pg_model).__name__})")
+    import gzip as _gzip
+    import xgboost as _xgb
+
+    # Load booster from gzip-compressed JSON (version independent across Python/XGBoost versions)
+    _model_gz = os.path.join(NEET_PG_MODELS_DIR, "neet_pg_model.json.gz")
+    _tmp_path  = os.path.join(NEET_PG_MODELS_DIR, "_tmp_model_load.json")
+    with _gzip.open(_model_gz, "rb") as _gz:
+        with open(_tmp_path, "wb") as _tmp:
+            _tmp.write(_gz.read())
+    neet_pg_booster = _xgb.Booster()
+    neet_pg_booster.load_model(_tmp_path)
+    os.remove(_tmp_path)
+
+    # Load meta (n_classes) and encoders
+    with open(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_meta.pkl"), "rb") as f:
+        _meta = pickle.load(f)
+    neet_pg_n_classes = _meta["n_classes"]
+
+    with open(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_category_encoder.pkl"), "rb") as f:
+        neet_pg_cat_enc = pickle.load(f)
+    with open(os.path.join(NEET_PG_MODELS_DIR, "neet_pg_label_encoder.pkl"), "rb") as f:
+        neet_pg_label_enc = pickle.load(f)
+
+    neet_pg_model = neet_pg_booster  # keep variable name consistent with endpoint
+    print(f"[SUCCESS] NEET PG model loaded (XGBoost Booster, {neet_pg_n_classes} classes)")
 except Exception as e:
     print(f"[ERROR] NEET PG model load failed: {e}")
-    neet_pg_model, neet_pg_cat_enc, neet_pg_label_enc = None, None, None
+    neet_pg_model, neet_pg_cat_enc, neet_pg_label_enc, neet_pg_n_classes = None, None, None, 0
 
 # ─── Load KCET Models ─────────────────────────────────────────────────────────
 KCET_MODELS_DIR = os.path.join(ROOT_DIR, "models", "kcet")
@@ -446,10 +466,13 @@ def predict_neet_pg(data: NeetPGInputData):
         cat_upper = known_cats[0]
 
     cat_encoded = int(neet_pg_cat_enc.transform([cat_upper])[0])
-    X_input     = np.array([[data.candidate_rank, cat_encoded]])
 
-    # ── Full probability vector over all 787 college+course labels ────────────
-    proba = neet_pg_model.predict_proba(X_input)[0]
+    # ── Full probability vector — use native Booster.predict() with DMatrix ──
+    import xgboost as _xgb_pred
+    dmat = _xgb_pred.DMatrix(np.array([[data.candidate_rank, cat_encoded]]))
+    # For multi:softprob, booster.predict() returns flat array of shape (1 * n_classes,)
+    raw_proba = neet_pg_model.predict(dmat)
+    proba = raw_proba.reshape(-1)  # shape: (n_classes,)
 
     SAFE_THRESHOLD   = 0.01    # ≥1%  → Safe
     LIKELY_THRESHOLD = 0.003   # ≥0.3% → Likely
